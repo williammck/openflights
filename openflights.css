@@ -554,3 +554,8 @@ div.olControlMousePosition {
 .olControlNoSelect {
  -moz-user-select: none;
 }
+
+/* jQuery UI Datepicker styles */
+.ui-datepicker {
+  z-index: 2000 !important;
+}

@@ -4,6 +4,11 @@
  */
 
 $.noConflict();
+jQuery(document).ready(function ($) {
+  $('.date').datepicker({
+    dateFormat: 'yy-mm-dd'
+  });
+});
 
 // Core map features
 var map, proj, drawControls, selectControl, selectedFeature, lineLayer, currentPopup;

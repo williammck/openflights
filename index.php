@@ -19,7 +19,6 @@ require_once("./php/helper.php");
     <script type="text/javascript" src="/js/greatcircle.js?version=20121108"></script>
     <script type="text/javascript" src="/js/utilities.js?version=20180428"></script>
     <script type="text/javascript" src="/js/Gettext.js"></script>
-    <script type="text/javascript" src="/js/scw.js"></script>
     <script type="text/javascript" src="/js/prototype.js?version=20090326"></script>
     <script type="text/javascript" src="/js/scriptaculous.js?version=20091230"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -181,7 +180,7 @@ require_once("./php/helper.php");
 <table>
 <tr>
   <td><font color="blue"><?php echo _("Date") ?></font></td>
-  <td colspan=2><input type="text" name="src_date" id="src_date" size="11" class="date" tabindex="11" onChange="JavaScript:calcDuration('DEPARTURE');"/> <img src="/img/scw.gif" height="15" width="16" onclick="scwShow(scwID('src_date'),event); calcDuration('DEPARTURE');" />
+  <td colspan=2><input type="text" name="src_date" id="src_date" size="11" class="date" tabindex="11" onChange="JavaScript:calcDuration('DEPARTURE');"/>
 <input type="text" name="src_time" id="src_time" tabindex="12" size="5" class="miniTextbox" placeholder="HH:MM" onChange="JavaScript:calcDuration('DEPARTURE')"/> &rarr;
 <input type="text" name="dst_time" id="dst_time" size="5" class="miniTextbox" placeholder="HH:MM" onChange="JavaScript:calcDuration('ARRIVAL')"/>
 <input type="text" name="dst_days" id="dst_days" size="6" value="" style="border: 0px; display: none" onChange="JavaScript:markAsChanged()"/><img src="/img/icon_clock.png" id="icon_clock" title="<?php echo _("Departure and arrival time") ?>" height="16" width="16" onclick='JavaScript:help("time")'/>
@@ -296,7 +295,7 @@ for($row = 1; $row <= 4; $row++) {
   printf ("<img src='/img/icon_plane-dst.png' title='%s' height=17 width=17 onclick='JavaScript:popNewAirport(\"dst_ap$row\")' style='margin-right: 5px'/></td>\n", _("Airport search"));
   printf ("<td><input type='text' name='airline%s' id='airline%s' size='32' tabindex='1%s3' onKeyDown='keyPress(event, \"airline%s\")' class='textbox' placeholder=\"%s\"/><span id='airline{$row}AC'></span>\n", $row, $row, $row, $row, _("Enter airline name or code"));
   printf ("<input type='hidden' name='airline%sid' id='airline%sid'/><img src='/img/icon_airline.png' title='%s' height=17 width=17 onclick='JavaScript:popNewAirline(\"airline1\")'/ style='margin-right: 5px'/></td>\n", $row, $row, _("Airline search"));
-  printf ("<td><input type='text' name='src_date%s' id='src_date%s' size='11' class='date' tabindex='1%s4' onChange='JavaScript:markAsChanged()';/><img src='/img/scw.gif' height='15' width='16' onclick='scwShow(scwID(\"src_date%s\"),event); markAsChanged();' style='margin-left: 5px'/></td></tr>\n", $row, $row, $row, $row);
+  printf ("<td><input type='text' name='src_date%s' id='src_date%s' size='11' class='date' tabindex='1%s4' onChange='JavaScript:markAsChanged()';/></td></tr>\n", $row, $row, $row, $row);
 }
 ?>
 <tr>
