@@ -214,29 +214,17 @@ ul.autocomplete2 { padding: 3px; width: 250px; border: 1px solid #999; list-styl
 li.autocomplete:hover { background: #C6DEFF; }
 li.selected { background: #C6DEFF; }
 
-/* Textbox hinting */
+/* Textbox sizes */
 
 input.date { 
   min-width: 90px;
   max-width: 90px;
 }
-input.hintTextbox {
-  color: #888;
-  min-width: 250px;
-  max-width: 350px;
-}
-input.hintTextboxActive {
-  color: #000;
+input.textbox {
   min-width: 250px;
   max-width: 350px;
 }
 input.miniTextbox {
-  color: #888;
-  min-width: 60px;
-  max-width: 60px;
-}
-input.miniTextboxActive {
-  color: #888;
   min-width: 60px;
   max-width: 60px;
 }

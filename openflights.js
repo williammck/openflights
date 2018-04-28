@@ -270,7 +270,6 @@ var earthLayer = new OpenLayers.Layer.XYZ(
     query = arguments[1];
   }
 
-  initHintTextboxes();
   new Ajax.Autocompleter("qs", "qsAC", "/php/autocomplete.php",
   			 {afterUpdateElement : getQuickSearchId,
 			  indicator: ajaxstatus, minChars: 2});
@@ -696,8 +695,8 @@ function xmlhttpPost(strURL, id, param) {
 	  } else {
 	    updateFilter(str);
 	    closePopup(true);
-	    $('qs').value = $('qs').hintText;
-	    $('qs').style.color = '#888';
+	    $('qs').value = "";
+	    $('qs').style.color = '#000';
 	    $('qs').autocompleted = false;
 	    $('qsid').value = 0;
 	    $('qsgo').disabled = true;
@@ -833,7 +832,7 @@ function xmlhttpPost(strURL, id, param) {
 	var alid = $('airline' + indexes[i] + 'id').value;
 	var airline = $('airline' + indexes[i]).value.trim();
 	if(! alid || alid == 0) {
-	  if(airline == "" || airline == $('airline').hintText) {
+	  if(airline == "") {
 	    alid = "-1"; // UNKNOWN
 	  } else {
 	    mode = getMode();
@@ -852,7 +851,7 @@ function xmlhttpPost(strURL, id, param) {
       }
       if(getCurrentPane() == "input") {
 	src_time = $('src_time').value;
-	if(src_time != "" && src_time != "HH:MM") {
+	if(src_time != "") {
 	  if(! RE_TIME.test(src_time)) {
 	    alert(gt.gettext("Please enter times in 24-hour format with a colon between hour and minute, eg. 21:37 for 9:37 PM."));
 	    $('src_time').focus();
@@ -1898,10 +1897,9 @@ function editFlight(str, param) {
   form.registration.value = col[14];
   alid = col[15];
   if(col[16] != "") {
-    $('note').style.color = '#000';
     form.note.value = col[16];
   } else {
-    $('note').value = $('note').hintText;
+    $('note').value = "";
   }
   form.seat.value = col[8];
 
@@ -2212,7 +2210,7 @@ function airportCodeToAirport(type) {
 
 // User has entered invalid input: clear apid, turn field red (unless empty) and remove marker
 function invalidateAirport(type) {
-  if($(type).value != "" && $(type).value != $(type).hintText) {
+  if($(type).value != "") {
     $(type).style.color = '#FF0000';
   }
   $(type + 'id').value = 0;
@@ -2277,7 +2275,7 @@ function calcDuration(param) {
   // Need both airports first
   if($('src_apid').value == 0 || $('dst_apid').value == 0) return;
   dst_time = $('dst_time').value.trim();
-  if(dst_time == "" || dst_time == "HH:MM") {
+  if(dst_time == "") {
     dst_time = 0;
   }
 
@@ -2353,7 +2351,7 @@ function calcDuration(param) {
 
   // Do we have a starting time?
   src_time = $('src_time').value;
-  if(src_time != "" && src_time != "HH:MM") {
+  if(src_time != "") {
     // We do!  Does it make sense?
     if(! RE_TIME.test(src_time)) {
       $('src_time').focus();
@@ -2576,7 +2574,7 @@ function markAirport(element, quick) {
       lineLayer.addFeatures(input_line);
       oldDist = $('distance').value;
       $('distance').value = distance;
-      if(oldDist == "" && $('dst_time').value != $('dst_time').hintText) {
+      if(oldDist == "" && $('dst_time').value != "") {
 	// user has already manually entered arrival time
 	calcDuration("ARRIVAL");
       } else {
@@ -3179,11 +3177,11 @@ function closeInput() {
 
 // Clear out (restore to defaults) the time indicators in the editor
 function clearTimes() {
-  $('src_time').value = $('src_time').hintText;
-  $('dst_time').value = $('dst_time').hintText;
+  $('src_time').value = "";
+  $('dst_time').value = "";
   $('dst_days').value = "";
-  $('src_time').style.color = '#888';
-  $('dst_time').style.color = '#888';
+  $('src_time').style.color = '#000';
+  $('dst_time').style.color = '#000';
   $('dst_days').style.display = "none";
 }
 
@@ -3199,7 +3197,6 @@ function todayString() {
 
 // Clear out (restore to defaults) the input box
 function clearInput() {
-  resetHintTextboxes();
   if(getCurrentPane() == "input") {
     var form = document.forms["inputform"];
     form.src_date.value = todayString();
