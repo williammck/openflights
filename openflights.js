@@ -3,6 +3,8 @@
  * by Jani Patokallio <jani at contentshare dot sg>
  */
 
+$.noConflict();
+
 // Core map features
 var map, proj, drawControls, selectControl, selectedFeature, lineLayer, currentPopup;
 var paneStack = [ "ad" ];
