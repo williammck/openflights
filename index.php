@@ -10,13 +10,16 @@ require_once("./php/helper.php");
     <meta name="description" content="Free open-source tool for logging, mapping, calculating and sharing your flights and trips.">
     <meta name="keywords" content="flight,memory,logging,mapping,statistics,sharing">
     <link rel="stylesheet" href="/css/style_reset.css" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/leaflet.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
     <link rel="stylesheet" href="<?php echo fileUrlWithDate("/openflights.css") ?>" type="text/css">
     <link rel="gettext" type="application/x-po" href="/locale/<?php echo $locale?>/LC_MESSAGES/messages.po?20090715" />
     <link rel="icon" type="image/png" href="/img/icon_favicon.png"/>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <script type="text/javascript" src="/OpenLayers.js?version=20091204"></script>
-    <script type="text/javascript" src="/js/greatcircle.js?version=20121108"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/leaflet.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.3.0/leaflet.markercluster.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-hash/0.2.1/leaflet-hash.min.js"></script>
+    <script type="text/javascript" src="/js/greatcircle.js?version=20180430"></script>
     <script type="text/javascript" src="/js/utilities.js?version=20180428"></script>
     <script type="text/javascript" src="/js/Gettext.js"></script>
     <script type="text/javascript" src="/js/prototype.js?version=20090326"></script>
@@ -29,10 +32,13 @@ require_once("./php/helper.php");
   <body>
 
     <div id="mainContainer">
+      <div id="ajaxloader">
+        <span id="ajaxstatus" style="display: none"><img src="/img/ajax-wait.gif" height=100 width=100/></span>
+      </div>
+
       <div id="sideBarContentWrapper">
 	<div id="contentContainer">
-	  <div id="map" class="smallmap"></div>
-
+	  <div id="map"></div>
             <div id="maptitle"><noscript><?php echo _("Sorry, OpenFlights requires JavaScript.") ?></noscript>
 	    </div>
 
@@ -40,10 +46,6 @@ require_once("./php/helper.php");
 	      <img src="/img/close.gif" height=17 width=17 onClick='JavaScript:closeNews()'>
   <B><?php echo _("News")?> </b>: 
 <?php include("./html/news.html") ?>
-	    </div>
-	    
-	    <div id="ajaxloader">
-	      <span id="ajaxstatus" style="display: none"><img src="/img/ajax-wait.gif" height=100 width=100/></span>
 	    </div>
 
 	    <div id="quicksearch" style="display: none">
@@ -160,12 +162,11 @@ require_once("./php/helper.php");
 
 	  <div id="help" style="display: none;">
 <h2><img src="/img/close.gif" height=17 width=17 onClick='JavaScript:closePane()'> OpenFlights Map Help <small>&mdash; Didn't answer your question?  Try the <a href="faq.html" target="_blank">FAQ</a>.</small></h2>
-<p><b>View airport</b>: Click on an airport <img src="/img/icon_plane-15x15.png" height=15 width=15> to view details.  Click on <img src="/img/close.gif" height=17 width=17> or another airport to close the pop-up.<br>
-<b>Move around</b>: Use <img src="/img/north-mini.png" height=18 width=18><img src="/img/west-mini.png" height=18 width=18><img src="/img/east-mini.png" height=18 width=18><img src="/img/south-mini.png" height=18 width=18> buttons (top left) or click and drag your mouse.<br>
-<b>Zoom in/out</b>: Use <img src="/img/zoom-plus-mini.png" height=18 width=18><img src="/img/zoom-minus-mini.png" height=18 width=18>, roll your mouse wheel, or double-click on the point you want to zoom to.  For the full world view, click <img src="/img/zoom-world-mini.png" height=18 width=18>.<br>
+<p><b>View airport</b>: Click on an airport <img src="/img/icon_plane-15x15.png" height=15 width=15> to view details.<br>
+<b>Move around</b>: Click and drag your mouse, or pan with two fingers on a mobile device.<br>
+<b>Zoom in/out</b>: Use the zoom controls in the top left, scroll with your mouse, pinch with two fingers, or double-click on the point you want to zoom to.<br>
 <b>Select region</b>: While holding down Shift key, click on the map and draw a rectangle with your mouse.<br>
-<b>Map options</b>: To choose your map type and what to show on it, click on the top right <img src="/img/layer-switcher-maximize.png" height=18 width=18>.<br>
-<b>Minimap</b>: To activate the mini-map control, click on bottom right <img src="/img/layer-switcher-maximize.png" height=18 width=18>.</p>
+<b>Map options</b>: To choose your map type and what to show on it, hover over the layer controls in the top right.<br></p>
 	  </div> <!-- end help -->
 	  <div id="input" style="display: none;">
 <h2><img src="/img/close.gif" height=17 width=17 onClick='JavaScript:closeInput()'>

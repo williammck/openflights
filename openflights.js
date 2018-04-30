@@ -11,7 +11,7 @@ jQuery(document).ready(function ($) {
 });
 
 // Core map features
-var map, proj, drawControls, selectControl, selectedFeature, lineLayer, currentPopup;
+var map, proj, airportLayer, lineLayer, inputLayer;
 var paneStack = [ "ad" ];
 
 // User settings (defaults)
@@ -29,7 +29,7 @@ var lastQuery, lastDesc;
 // Temporary variables for current flight being edited
 var alid = 0, plane;
 var logged_in = false, demo_mode = true, initializing = true;
-var input_srcmarker, input_dstmarker, input_line, input_toggle, input_al_toggle;
+var input_srcmarker, input_dstmarker, input_toggle, input_al_toggle;
 var changed = false, majorEdit = false;
 
 // Some helpers for multiinput handling
@@ -85,10 +85,6 @@ var re_date = /^((19|20)\d\d)[- /.]?([1-9]|0[1-9]|1[012])[- /.]?([1-9]|0[1-9]|[1
 // Validate numeric value
 var re_numeric = /^[0-9]*$/;
 
-// avoid pink tiles
-OpenLayers.IMAGE_RELOAD_ATTEMPTS = 3;
-OpenLayers.Util.onImageLoadErrorColor = "transparent";
-
 // Init Google Charts
 google.load('visualization', '1', {packages: ['corechart']});
 // Call init after google is done initing.
@@ -108,158 +104,82 @@ function init(){
   modeoperators = { "F":gt.gettext("airline"), "T":gt.gettext("railway"), "R":gt.gettext("road transport"), "S":gt.gettext("shipping") };
   topmodes = { "F":gt.gettext("Segments"), "D":gt.gettext("Mileage") };
 
-  var projectionName = "EPSG:4326";  // spherical Mercator
-  proj = new OpenLayers.Projection(projectionName);
-
-  map = new OpenLayers.Map('map', {
-    center: new OpenLayers.LonLat(0, 1682837.6144925),
-    controls: [
-      new OpenLayers.Control.PanZoom(),
-      new OpenLayers.Control.Navigation({'title': gt.gettext("Toggle pan and region select mode")}),
-      new OpenLayers.Control.LayerSwitcher({'ascending':false, 'title': gt.gettext('Switch map layers')}),
-      new OpenLayers.Control.ScaleLine(),
-      new OpenLayers.Control.OverviewMap({'title': gt.gettext("Toggle overview map")})
-    ] });
-
-  // Horrible hack to stop OpenLayers 2 from showing ZL < 2
-  map.events.register('zoomend', this, function (event) {
-    if(map.getZoom() < 2) { map.zoomTo(2); }
+  var poliLayer = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/{id}/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    id: 'light_nolabels'
   });
 
-var poliLayer = new OpenLayers.Layer.XYZ(
-    "Political",
-    [
-"https://cartodb-basemaps-1.global.ssl.fastly.net/light_nolabels/${z}/${x}/${y}.png",
-"https://cartodb-basemaps-1.global.ssl.fastly.net/light_nolabels/${z}/${x}/${y}.png",
-"https://cartodb-basemaps-1.global.ssl.fastly.net/light_nolabels/${z}/${x}/${y}.png",
-"https://cartodb-basemaps-1.global.ssl.fastly.net/light_nolabels/${z}/${x}/${y}.png"
-    ], {
-        attribution: "Map tiles by <a href='http://cartodb.com'>CartoDB</a> (CC BY 3.0), data by <a href='/http://openstreetmap.com'>OSM</a> (ODbL)",
-        sphericalMercator: true,
-        transitionEffect: 'resize',
-        wrapDateLine: true
-    });
+  var artLayer = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/{id}/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://stamen.com">Stamen Design</a>',
+    id: 'watercolor'
+  })
 
-var artLayer = new OpenLayers.Layer.XYZ(
-    "Artistic",
-    [
-"https://stamen-tiles.a.ssl.fastly.net/watercolor/${z}/${x}/${y}.png"
-    ], {
-        attribution: "Tiles &copy; <a href='http://maps.stamen.com/'>Stamen</a>",
-        sphericalMercator: true,
-        transitionEffect: 'resize',
-        wrapDateLine: true
-    });
-  artLayer.setVisibility(false);
+  var earthLayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://mapbox.com">Mapbox</a>',
+    id: 'mapbox.satellite',
+    accessToken: 'pk.eyJ1IjoianBhdG9rYWwiLCJhIjoiY2lyNmFyZThqMDBiNWcybTFlOWdkZGk1MiJ9.6_VWU3skRwM68ASapMLIQg'
+  });
 
-var earthLayer = new OpenLayers.Layer.XYZ(
-    "Satellite",
-    [
-"https://api.tiles.mapbox.com/v4/mapbox.satellite/${z}/${x}/${y}.png?access_token=pk.eyJ1IjoianBhdG9rYWwiLCJhIjoiY2lyNmFyZThqMDBiNWcybTFlOWdkZGk1MiJ9.6_VWU3skRwM68ASapMLIQg"
-    ], {
-        attribution: "Tiles by <a href='https://www.mapbox.com/satellite/' target='_blank'>Mapbox</a>",
-        sphericalMercator: true,
-        transitionEffect: 'resize',
-        wrapDateLine: true
-    });
-  earthLayer.setVisibility(false);
+  lineLayer = L.featureGroup();
 
-  lineLayer = new OpenLayers.Layer.Vector(gt.gettext("Flights"),
-					{ projection: projectionName,
-            styleMap: new OpenLayers.StyleMap({
-					    strokeColor: "${color}",
-						strokeOpacity: 1,
-						strokeWidth: "${count}",
-						strokeDashstyle: "${stroke}"
-						})
-					    });
+  airportLayer = L.markerClusterGroup({
+    animate: false,
+    maxClusterRadius: 15,
+    iconCreateFunction: function (cluster) {
+      var markers = cluster.getAllChildMarkers();
 
-  var style = new OpenLayers.Style({graphicTitle: "${name}",
-				       externalGraphic: "${icon}",
-				       graphicWidth: "${size}",
-				       graphicHeight: "${size}",
-				       graphicXOffset: "${offset}",
-				       graphicYOffset: "${offset}",
-				       graphicOpacity: "${opacity}",
-				       pointerEvents: "visiblePainted",
-				       label : "\xA0${code}",
-				       fontColor: "#000000",
-				       fontSize: "9px",
-				       fontFamily: "Calibri, Verdana, Arial, sans-serif",
-				       labelAlign: "lt",
-				       fillColor: "black"
-				       }, { context: {
-				     name: function(feature) {
-					 if(feature.cluster) {
-					   // Last airport is always the largest
-					   last = feature.cluster.length - 1;
-					   if(feature.cluster[last].attributes.index > 2) {
-					     // One airport is dominant, copy its attributes into cluster
-					     feature.attributes.apid = feature.cluster[last].attributes.apid;
-					     feature.attributes.coreid = feature.cluster[last].attributes.coreid;
-					     feature.attributes.code = feature.cluster[last].attributes.code + "+";
-					     feature.attributes.desc = feature.cluster[last].attributes.desc;
-					     feature.attributes.rdesc = feature.cluster[last].attributes.rdesc;
-					     feature.attributes.icon = feature.cluster[last].attributes.icon;
-					     feature.attributes.size = feature.cluster[last].attributes.size;
-					     feature.attributes.offset = feature.cluster[last].attributes.offset;
-					     feature.attributes.name = feature.cluster[last].attributes.name + " \u2295";
-					   } else {
-					     // No dominant airport, show cluster icon with aggregate info
-					     name = "";
-					     for(c = last; c >= 0; c--) {
-					       if(c < last) name += ", ";
-					       name += feature.cluster[c].attributes.code;
-					     }
-					     feature.attributes.icon = "/img/icon_cluster.png";
-					     feature.attributes.code = "";
-					     feature.attributes.size = clusterRadius(feature);
-					     feature.attributes.offset = -clusterRadius(feature) / 2;
-					     feature.attributes.name = name;
-					   }
-					 }
-					 return feature.attributes.name;
-				       },
-				     icon: function(feature) { return feature.attributes.icon; },
-				     size: function(feature) { return feature.attributes.size; },
- 				     offset: function(feature) { return feature.attributes.offset; },
-				     opacity: function(feature) {
-					 return feature.cluster ? 1 : feature.attributes.opacity;
-				       },
-				     code: function(feature) { return feature.attributes.code; }
-				     }});
-
-  var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
-  renderer = (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers;
-  var strategy = new OpenLayers.Strategy.Cluster({distance: 15, threshold: 3});
-  airportLayer = new OpenLayers.Layer.Vector("Airports",
-					     { projection: projectionName,
-                 styleMap: new OpenLayers.StyleMap
-						 ({'default': style,
-						   'select':{
-						   fillOpacity: 1.0,
-						   pointerEvents: "visiblePainted",
-						   label : ""
-						       }}),
-						 renderers: renderer,
-						 strategies: [strategy]});
-  map.addLayers([poliLayer, artLayer, earthLayer, lineLayer, airportLayer]);
-
-  selectControl = new OpenLayers.Control.SelectFeature(airportLayer, {onSelect: onAirportSelect,
-							              onUnselect: onAirportUnselect});
-  map.addControl(selectControl);
-  selectControl.activate();
-
-  // When using the earth map layer, change the font color from black to white, since the map is mostly dark colors.
-  map.events.on({
-    "changelayer":function () {
-      if(earthLayer.visibility) {
-        style.defaultStyle.fontColor = "#fff";
+      // Last airport is always the largest
+      var tooltipContent, iconUrl, iconSize, last = markers.length - 1;
+      if (markers[last].attributes.index > 2) {
+        // One airport is dominant
+        tooltipContent = markers[last].attributes.code + '+';
+        iconUrl = markers[last].attributes.icon;
+        iconSize = markers[last].attributes.size;
       } else {
-        style.defaultStyle.fontColor = "#000";
+        // No dominant airport, show cluster icon
+        tooltipContent = '';
+        for (var i = last; i >= 0; i--) {
+          if (i < last) tooltipContent += ', ';
+          tooltipContent += markers[i].attributes.code;
+        }
+        iconUrl = '/img/icon_cluster.png';
+        iconSize = clusterRadius(cluster);
       }
+
+      cluster.bindTooltip(tooltipContent);
+
+      return L.icon({
+        iconUrl: iconUrl,
+        iconSize: [iconSize, iconSize]
+      });
     }
   });
+  airportLayer.on('click', function (e) {
+    onAirportSelect(e.sourceTarget);
+  })
+
+  map = L.map('map', {
+    center: [0, 14.9447849],
+    zoom: 2,
+    minZoom: 2,
+    maxZoom: 18,
+    layers: [poliLayer, airportLayer, lineLayer]
+  });
+
+  inputLayer = L.featureGroup().addTo(map);
+
+  L.hash(map);
+
+  L.control.layers({
+    'Political': poliLayer,
+    'Artistic': artLayer,
+    'Satellite': earthLayer
+  }, {
+    'Airports': airportLayer,
+    'Flights': lineLayer
+  }).addTo(map);
+
+  L.control.scale().addTo(map);
 
   // Extract any arguments from URL
   var query;
@@ -318,11 +238,7 @@ var earthLayer = new OpenLayers.Layer.XYZ(
       document.forms['multiinputform'].elements[i].disabled=false;
     }
     $('b_less').disabled = true;
-
-    map.zoomTo(2);
   }
-
-  OpenLayers.Util.alphaHack = function() { return false; };
 
   if(query) {
     xmlhttpPost(URL_ROUTES, 0, query);
@@ -332,9 +248,10 @@ var earthLayer = new OpenLayers.Layer.XYZ(
 
 }
 
-function clusterRadius(feature) {
-  var radius = feature.attributes.count * 5;
-  if(radius > 29) radius = 29;
+function clusterRadius(cluster) {
+  var radius = cluster.getChildCount() * 5;
+  if (radius >= 30) radius = 30;
+  if (radius <= 10) radius = 15;
   return radius;
 }
 
@@ -349,46 +266,34 @@ function parseUrl()
   } else return [null,null];
 }
 
-function projectedPoint(x, y) {
-  var point = new OpenLayers.Geometry.Point(x, y);
-  point.transform(proj, map.getProjectionObject());
-  return point;
-}
-
-function projectedLine(points) {
-  var line = new OpenLayers.Geometry.LineString(points);
-  line.transform(proj, map.getProjectionObject());
-  return line;
-}
-
 // Draw a flight connecting (x1,y1)-(x2,y2)
 // Note: Values passed in *must already be parsed as floats* or very strange things happen
 function drawLine(x1, y1, x2, y2, count, distance, color, stroke) {
   if(! color) {
     color = COLOR_NORMAL;
   }
-  if(! stroke) {
-    stroke = "solid";
+
+  var dashArray = null;
+  if (stroke === 'dash') {
+    dashArray = '4, 4';
   }
 
   // 1,2 flights as single pixel
   count = Math.floor(Math.sqrt(count) + 0.5);
 
-  var paths = [ gcPath(new OpenLayers.Geometry.Point(x1, y1), new OpenLayers.Geometry.Point(x2, y2)) ];
+  var paths = [gcPath({x: x1, y: y1}, {x: x2, y: y2})];
+
   // Path is in or extends into east (+) half, so we have to make a -360 copy
-  if(x1 > 0 || x2 > 0) {
-    paths.push(gcPath(new OpenLayers.Geometry.Point(x1-360, y1), new OpenLayers.Geometry.Point(x2-360, y2)));
+  if (x1 > 0 || x2 > 0) {
+    paths.push(gcPath({x: x1 - 360, y: y1}, {x: x2 - 360, y: y2}));
   }
+
   // Path is in or extends into west (-) half, so we have to make a +360 copy
-  if(x1 < 0 || x2 < 0) {
-    paths.push(gcPath(new OpenLayers.Geometry.Point(x1+360, y1), new OpenLayers.Geometry.Point(x2+360, y2)));
+  if (x1 < 0 || x2 < 0) {
+    paths.push(gcPath({x: x1 + 360, y: y1}, {x: x2 + 360, y: y2}));
   }
-  var features = [];
-  for(i = 0; i < paths.length; i++) {
-    features.push(new OpenLayers.Feature.Vector(projectedLine(paths[i]),
-						{count: count, color: color, stroke: stroke}));
-  }
-  return features;
+
+  return L.polyline(paths, {interactive: false, color: color, weight: count, dashArray: dashArray});
 }
 
 //
@@ -432,8 +337,13 @@ function drawAirport(airportLayer, apdata, name, city, country, count, formatted
     return;
   }
 
-  var feature = new OpenLayers.Feature.Vector(projectedPoint(x,y));
-  feature.attributes = {
+  var marker = L.marker([y, x], {
+    icon: L.icon({
+      iconUrl: airportIcons[colorIndex][0],
+      iconSize: [airportIcons[colorIndex][1], airportIcons[colorIndex][1]]
+    })
+  }).bindTooltip(code);
+  marker.attributes = {
     apid: apid,
     coreid: coreid,
     code: code,
@@ -442,13 +352,12 @@ function drawAirport(airportLayer, apdata, name, city, country, count, formatted
     desc: desc,
     rdesc: rdesc,
     opacity: opacity,
-    icon: airportIcons[colorIndex][0], 
+    icon: airportIcons[colorIndex][0],
     size: airportIcons[colorIndex][1],
-    index: count,
-    offset: Math.floor(-airportIcons[colorIndex][1]/2)
+    index: count
   };
 
-  return feature;
+  return marker;
 }
 
 // Run when the user clicks on an airport marker
@@ -458,97 +367,53 @@ function onAirportSelect(airport) {
   coreid = airport.attributes.coreid;
   rdesc = airport.attributes.rdesc;
 
-  // Single airport?
-  if(!airport.cluster) {
-    // Add toolbar to popup
-    desc = "<span style='position: absolute; right: 5; bottom: 1;'>" +
-      "<a href='#' onclick='JavaScript:selectAirport(" + apid + ", true);'><img src='/img/icon_plane-src.png' width=17 height=17 title='" + gt.gettext("Select this airport") + "' id='popup" + apid + "' style='visibility: hidden'></a>";
-    
-    if(coreid == 0) {
-      // Detailed flights accessible only if...
-      // 1. user is logged in, or
-      // 2. system is in "demo mode", or
-      // 3. privacy is set to (O)pen
-      if( logged_in || demo_mode || privacy == "O") {
-	// Get list of user flights
-	desc += " <a href='#' onclick='JavaScript:xmlhttpPost(\"" + URL_FLIGHTS + "\"," + apid + ", \"" + encodeURI(airport.attributes.desc) + "\");'><img src='/img/icon_copy.png' width=16 height=16 title='" + gt.gettext("List my flights") + "'></a>";
-      }
-    } else {
-      if(code.length == 3) {
-	// Get list of airport routes
-	if(coreid.startsWith("L")) {
-	  idstring = coreid + "," + apid;
-	} else {
-	  idstring = "R" + apid + "," + coreid;
-	}
-	desc += " <a href='#' onclick='JavaScript:xmlhttpPost(\"" + URL_FLIGHTS + "\",\"" + idstring + "\", \"" + encodeURI(rdesc) + "\");'><img src='/img/icon_copy.png' width=16 height=16 title='" + gt.gettext("List routes") + "'></a> ";
-      }
+  // Add toolbar to popup
+  desc = "<span style='position: absolute; right: 8px; bottom: 3px;'>" +
+    "<a href='#' onclick='JavaScript:selectAirport(" + apid + ", true);'><img src='/img/icon_plane-src.png' width=17 height=17 title='" + gt.gettext("Select this airport") + "' id='popup" + apid + "' style='visibility: hidden'></a>";
+
+  if(coreid == 0) {
+    // Detailed flights accessible only if...
+    // 1. user is logged in, or
+    // 2. system is in "demo mode", or
+    // 3. privacy is set to (O)pen
+    if( logged_in || demo_mode || privacy == "O") {
+// Get list of user flights
+desc += " <a href='#' onclick='JavaScript:xmlhttpPost(\"" + URL_FLIGHTS + "\"," + apid + ", \"" + encodeURI(airport.attributes.desc) + "\");'><img src='/img/icon_copy.png' width=16 height=16 title='" + gt.gettext("List my flights") + "'></a>";
     }
+  } else {
     if(code.length == 3) {
-      // IATA airport, we know its routes
-      desc += " <a href='#' onclick='JavaScript:xmlhttpPost(\"" + URL_ROUTES + "\"," + apid + ");'><img src='/img/icon_routes.png' width=17 height=17 title='" + gt.gettext("Map of routes from this airport") + "'></a>";
-    }
-    desc += " <a href='#' onclick='JavaScript:popNewAirport(null, " + apid + ")'><img src='/img/icon_edit.png' width=16 height=16 title='" + gt.gettext("View airport details") + "'></a>";
-    desc += "</span>" + airport.attributes.desc.replace("Flights:", gt.gettext("Flights:"));
-  } else {
-    // Cluster, generate clickable list of members in reverse order (most flights first)
-    desc = "<b>" + gt.gettext("Airports") + "</b><br>";
-    edit = isEditMode() ? "true" : "false";
-    cmax = airport.cluster.length - 1;
-    for(c = cmax; c >= 0; c--) {
-      if(c < cmax) {
-	desc += ", ";
-	if((cmax-c) % 6 == 0) desc += "<br>";
-      }
-      desc += "<a href='#' onclick='JavaScript:selectAirport(" + airport.cluster[c].attributes.apid + ","
-	+ edit + ")'>" + airport.cluster[c].attributes.code + "</a>";
+// Get list of airport routes
+if(coreid.startsWith("L")) {
+  idstring = coreid + "," + apid;
+} else {
+  idstring = "R" + apid + "," + coreid;
+}
+desc += " <a href='#' onclick='JavaScript:xmlhttpPost(\"" + URL_FLIGHTS + "\",\"" + idstring + "\", \"" + encodeURI(rdesc) + "\");'><img src='/img/icon_copy.png' width=16 height=16 title='" + gt.gettext("List routes") + "'></a> ";
     }
   }
-
-  desc = "<img src=\"/img/close.gif\" onclick=\"JavaScript:closePopup(true);\" width=17 height=17> " + desc;
-  closePopup(false);
-
-  if (airport.popup == null) {
-    airport.popup = new OpenLayers.Popup.FramedCloud("airport", 
-					     airport.geometry.getBounds().getCenterLonLat(),
-					     new OpenLayers.Size(200,80),
-					     desc, null, false);
-    airport.popup.minSize = new OpenLayers.Size(200,80);
-    airport.popup.overflow = "auto";
-
-    map.addPopup(airport.popup);
-    airport.popup.show();
-  } else {
-    airport.popup.setContentHTML(desc);
-    airport.popup.toggle();
+  if(code.length == 3) {
+    // IATA airport, we know its routes
+    desc += " <a href='#' onclick='JavaScript:xmlhttpPost(\"" + URL_ROUTES + "\"," + apid + ");'><img src='/img/icon_routes.png' width=17 height=17 title='" + gt.gettext("Map of routes from this airport") + "'></a>";
   }
-  if(airport.popup.visible()) {
-    currentPopup = airport.popup;
+  desc += " <a href='#' onclick='JavaScript:popNewAirport(null, " + apid + ")'><img src='/img/icon_edit.png' width=16 height=16 title='" + gt.gettext("View airport details") + "'></a>";
+  desc += "</span>" + airport.attributes.desc.replace("Flights:", gt.gettext("Flights:"));
+
+  if (airport.getPopup() == null) {
+    airport.bindPopup(desc, {
+      maxWidth: 250,
+      maxHeight: 100
+    }).openPopup();
   } else {
-    closePane();
+    airport.setPopupContent(desc);
+    airport.openPopup();
   }
+
   // Show or hide toolbar when applicable
   if($('popup' + apid)) {
     if(isEditMode()) {
       $('popup' + apid).style.visibility = "visible";
     } else {
       $('popup' + apid).style.visibility = "hidden";
-    }
-  }
-}
-
-function onAirportUnselect(airport) {
-  // do nothing
-}
-
-function toggleControl(element) {
-  for(key in drawControls) {
-    var control = drawControls[key];
-    if(element.value == key && element.checked) {
-      control.activate();
-    } else {
-      control.deactivate();
-      onPopupClose();
     }
   }
 }
@@ -691,8 +556,7 @@ function xmlhttpPost(strURL, id, param) {
 	  updateMap(str, strURL);
 	  if(! logged_in && ! demo_mode && initializing) {
 	    closePane();
-	    var extent = airportLayer.getDataExtent();
-	    if(extent) map.zoomToExtent(extent);
+      map.fitBounds(airportLayer.getBounds());
 	  }
 	  if(strURL == URL_MAP) {
 	    if(param) {
@@ -701,15 +565,13 @@ function xmlhttpPost(strURL, id, param) {
 	    $("maptitle").innerHTML = getMapTitle(true);
 	  } else {
 	    updateFilter(str);
-	    closePopup(true);
 	    $('qs').value = "";
 	    $('qs').style.color = '#000';
 	    $('qs').autocompleted = false;
 	    $('qsid').value = 0;
 	    $('qsgo').disabled = true;
 	    if(filter_alid == 0) {
-        var extent = airportLayer.getDataExtent();
-	      if(extent) map.zoomToExtent(extent);
+        map.fitBounds(airportLayer.getBounds());
 	    }
 	  }
 	  
@@ -1257,18 +1119,14 @@ function radioValue(radio) {
 
 // Clear all flights, airports and popups
 function clearMap() {
-  lineLayer.destroyFeatures();
-  airportLayer.destroyFeatures();
-  var popups = map.popups;
-  for(p = 0; p < popups.length; p++) {
-    popups[p].destroy();
-  }
+  lineLayer.clearLayers();
+  airportLayer.clearLayers();
 }
 
 // Reinsert all flights, airports from database result
 function updateMap(str, url){
-  lineLayer.destroyFeatures();
-  airportLayer.destroyFeatures();
+  lineLayer.clearLayers();
+  airportLayer.clearLayers();
   lasturl = url; // used for refresh
 
   var master = str.split("\n");
@@ -1363,7 +1221,7 @@ function updateMap(str, url){
 	color = modecolors[rCol[9]];
 	if(!color) color = COLOR_NORMAL;
       }
-      lineLayer.addFeatures(drawLine(parseFloat(rCol[1]), parseFloat(rCol[2]),
+      lineLayer.addLayer(drawLine(parseFloat(rCol[1]), parseFloat(rCol[2]),
 				     parseFloat(rCol[4]), parseFloat(rCol[5]),
 				     rCol[6], rCol[7], color, stroke));
     }
@@ -1372,7 +1230,7 @@ function updateMap(str, url){
   // Route maps draw the core airport even if there are no routes
   if(flightTotal != "0" || type == "R") {
     var rows = airports.split("\t");
-    var airports = Array();
+    var airports = [];
 
     // Airports are ordered from least busy to busiest, so we calibrate the color scale based on the last result
     airportMaxFlights = rows[rows.length - 1].split(";")[4];
@@ -1386,7 +1244,7 @@ function updateMap(str, url){
       }
       airports.push(drawAirport(airportLayer, col[0], col[1], col[2], col[3], col[4], col[5], opacity, apid));
     }
-    airportLayer.addFeatures(airports);
+    airportLayer.addLayers(airports);
   }
 
   // Redraw selection markers if in input mode
@@ -2493,21 +2351,17 @@ function markAirport(element, quick) {
   var y = data[3];
 
   if(apid > 0) {
-    var point = projectedPoint(x, y);
-    var marker = new OpenLayers.Feature.Vector(point);
-    marker.attributes = {
-      name: "",
-      icon: icon,
-      size: 17,
-      offset: -17/2,
-      opacity: 1,
-      code: data[0]
-    };
-    airportLayer.addFeatures(marker, {silent: true});
+    var marker = L.marker([y, x], {
+      icon: L.icon({
+        iconUrl: icon,
+        iconSize: [17, 17]
+      }),
+      zIndexOffset: 1000
+    }).bindTooltip(data[0]).addTo(inputLayer);
   }
   if(element.startsWith("src_ap")) {
     if(input_srcmarker) {
-      airportLayer.removeFeatures([input_srcmarker]);
+      inputLayer.removeLayer(input_srcmarker);
     }
     if(apid > 0) {
       input_srcmarker = marker;
@@ -2523,7 +2377,7 @@ function markAirport(element, quick) {
     }
   } else {
     if(input_dstmarker) {
-      airportLayer.removeFeatures([input_dstmarker]);
+      inputLayer.removeLayer(input_dstmarker);
     }
     if(apid > 0) {
       input_dstmarker = marker;
@@ -2541,10 +2395,11 @@ function markAirport(element, quick) {
 
   // Draw line and calculate distance and duration
   if(! quick) {
-    if(input_line) {
-      lineLayer.removeFeatures(input_line);
-      input_line = null;
-    }
+    inputLayer.eachLayer(function (layer) {
+      if (layer instanceof L.Path) {
+        layer.remove();
+      }
+    });
     if(input_dstmarker && input_srcmarker) {
       if(getCurrentPane() == "input") {
 	
@@ -2553,12 +2408,11 @@ function markAirport(element, quick) {
 	var lon2 = getX('dst_ap');
 	var lat2 = getY('dst_ap');
 	var distance = gcDistance(lat1, lon1, lat2, lon2);
-	input_line = drawLine(parseFloat(lon1), parseFloat(lat1),
+	inputLayer.addLayer(drawLine(parseFloat(lon1), parseFloat(lat1),
 			      parseFloat(lon2), parseFloat(lat2),
-			      4, distance, COLOR_HIGHLIGHT);
+			      4, distance, COLOR_HIGHLIGHT));
       } else {
-	input_line = [];
-	for(i = 1; i <= multiinput_rows; i++) {
+	for(var i = 1; i <= multiinput_rows; i++) {
 	  var src_ap = $('src_ap' + i + 'id').value;
 	  var dst_ap = $('dst_ap' + i + 'id').value;
 	  if(src_ap != 0 && dst_ap != 0) {
@@ -2569,16 +2423,14 @@ function markAirport(element, quick) {
 	    var lon2 = dst_ap_data[2];
 	    var lat2 = dst_ap_data[3];
 	    var distance = gcDistance(lat1, lon1, lat2, lon2);
-	    line = drawLine(parseFloat(lon1), parseFloat(lat1),
+	    inputLayer.addLayer(drawLine(parseFloat(lon1), parseFloat(lat1),
 			    parseFloat(lon2), parseFloat(lat2),
-			    4, distance, COLOR_HIGHLIGHT);
-	    input_line = input_line.concat(line);
+			    4, distance, COLOR_HIGHLIGHT));
 	  } else {
 	    break; // stop drawing
 	  }
 	}
       }
-      lineLayer.addFeatures(input_line);
       oldDist = $('distance').value;
       $('distance').value = distance;
       if(oldDist == "" && $('dst_time').value != "") {
@@ -2597,18 +2449,7 @@ function markAirport(element, quick) {
 
 // Remove input markers and flight lines 
 function unmarkAirports() {
-  if(input_srcmarker) {
-    airportLayer.removeFeatures([input_srcmarker]);
-    input_srcmarker = null;
-  }
-  if(input_dstmarker) {
-    airportLayer.removeFeatures([input_dstmarker]);
-    input_dstmarker = null;
-  }
-  if(input_line) {
-    lineLayer.removeFeatures(input_line);
-    input_line = null;
-  }
+  inputLayer.clearLayers();
 }
 
 // Find the highest valid (defined && non-zero apid) airport in multiinput
@@ -2668,48 +2509,35 @@ function swapAirports(manual) {
 // "quick" is passed to markAirport
 function selectAirport(apid, select, quick, code) {
   var found = false;
-  for(var ap = 0; ap < airportLayer.features.length; ap++) {
-    attrstack = new Array();
-    if(airportLayer.features[ap].cluster) {
-      for(var c = 0; c < airportLayer.features[ap].cluster.length; c++) {
-	attrstack.push(airportLayer.features[ap].cluster[c].attributes);
-      }
-    } else {
-      attrstack.push(airportLayer.features[ap].attributes);
+
+  airportLayer.eachLayer(function (layer) {
+    var attrs = layer.attributes;
+    if ((apid && attrs.apid == apid) || (code && attrs.code == code)) {
+      airportLayer.zoomToShowLayer(layer, function () {
+        if (select && isEditMode()) {
+          var element = input_toggle;
+          $(element).value = attrs.name;
+          $(element).style.color = "#000";
+          $(element + 'id').value = attrs.apdata;
+          replicateSelection(element);
+          markAirport(element, quick);
+          markAsChanged(true);
+        } else {
+          onAirportSelect(layer);
+        }
+      });
+      found = true;
     }
-    while(attrstack.length > 0) {
-      attrs = attrstack.pop();
-      if((apid && attrs.apid == apid) ||
-	 (code && attrs.code == code)) {
-	// If "select" is true, we select the airport into the input form instead of popping it up
-	if(select && isEditMode()) {
-	  var element = input_toggle;
-	  $(element).value = attrs.name;
-	  $(element).style.color = "#000";
-	  $(element + 'id').value = attrs.apdata;
-	  replicateSelection(element);
-	  markAirport(element, quick);
-	  markAsChanged(true);
-	  closePopup(true);
-	} else {
-	  if(airportLayer.features[ap].cluster) {
-	    onAirportSelect(airportLayer.features[ap].cluster[attrstack.length]);
-	  } else {
-	    onAirportSelect(airportLayer.features[ap]);
-	  }
-	}
-	found = true;
-	return found;
-      }
-    }
-  }
+  });
+
   // Search failed
-  if (!quick && !code) {
+  if (!found && !quick && !code) {
     if(confirm("This airport is currently filtered out. Clear filter?")) {
       clearFilter(false);
     }
   }
-  return false;
+
+  return found;
 }
 
 // Change number of rows displayed in multiinput
@@ -3248,22 +3076,6 @@ function clearInput() {
   setCommitAllowed(false);
 }
 
-function showHelp() {
-  if(getCurrentPane() == "help") return;
-  openPane("help");
-}
-
-function closePopup(unselect) {
-  // close any previous popups
-  if(currentPopup && currentPopup != this.popup) {
-    currentPopup.hide();
-    currentPopup = null;
-  }
-  if(unselect) {
-    selectControl.unselectAll();
-  }
-}
-
 function closeNews() {
   $("news").style.display = 'none';
 }
@@ -3316,8 +3128,7 @@ function clearFilter(refresh_all) {
   $('filter_extra_span').innerHTML = "";
   selectAirline(0);
   if(refresh_all && lasturl == URL_ROUTES) {
-    var extent = airportLayer.getDataExtent();
-    if(extent) map.zoomToExtent(extent);
+    map.fitBounds(airportLayer.getBounds());
     lasturl = URL_MAP;
   }
   refresh(refresh_all);
@@ -3328,7 +3139,6 @@ function clearFilter(refresh_all) {
 // init = false: loads flight data and stats only
 // lasturl: either URL_MAP or URL_ROUTES (set in updateMap())
 function refresh(init) {
-  closePopup();
   if(typeof lasturl == "undefined") {
     lasturl = URL_MAP;
   }

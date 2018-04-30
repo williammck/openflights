@@ -17,7 +17,7 @@ var RE_TIME = /(^0?[0-9]|1[0-9]|2[0-3]):?([0-5][0-9])$/;
 
 // Compute great circle distance between two points (spherical law of cosines)
 // http://www.movable-type.co.uk/scripts/latlong.html
-// © 2002-2008 Chris Veness
+// ï¿½ 2002-2008 Chris Veness
 function gcDistance(lat1, lon1, lat2, lon2) {
   var rad = Math.PI / 180;
   lat1 = lat1 * rad;
@@ -79,7 +79,7 @@ function gcBearingTo(from, to) {
  * Compute great circle waypoint "distance" miles away from "from" in direction "bearing"
  */
 function gcWaypoint(from, distance, bearing) {
-  var wp = new OpenLayers.Geometry.Point( 0, 0 );
+  var wp = {x: 0, y: 0};
 
   // Math.* trig functions require angles to be in radians
   var x = from.x * DEG2RAD;
@@ -115,7 +115,7 @@ function gcPath(startPoint, endPoint) {
   var distance = gcDistance(startPoint.y, startPoint.x, endPoint.y, endPoint.x);
   if(distance < GC_MIN) {
     // Short enough that we don't need to show curvature
-    return [startPoint, endPoint];
+    return [[startPoint.y, startPoint.x], [endPoint.y, endPoint.x]];
   }
 
   // And... action!
@@ -124,13 +124,13 @@ function gcPath(startPoint, endPoint) {
   var d = GC_STEP;
   var step = GC_STEP;
   if(startPoint.x > -360 && startPoint.x < 360) {
-    pointList.push(startPoint);
+    pointList.push([startPoint.y, startPoint.x]);
   }
   while(d < distance) {
     var bearing = gcBearingTo(wayPoint, endPoint); // degrees, clockwise from 0 deg at north
     var wayPoint = gcWaypoint(wayPoint, step, bearing);
     if(wayPoint.x > -360 && wayPoint.x < 360) {
-      pointList.push(wayPoint);
+      pointList.push([wayPoint.y, wayPoint.x]);
     } else {
       if((wayPoint.x < -360 && bearing > 180) ||
 	 (wayPoint.x > 360 && bearing < 180)) {
@@ -147,28 +147,14 @@ function gcPath(startPoint, endPoint) {
     d += step;
   }
   if(endPoint.x > -360 && endPoint.x < 360) {
-    pointList.push(endPoint);
+    pointList.push([endPoint.y, endPoint.x]);
   }
   return pointList;
 }
 
 // Check if point is a point
 function isValid(point) {
-  return ((point.x != null) && (point.y != null) && (point.x != NaN) && (point.y != NaN))
-}
-
-// Compute extent for visible data (-180 to 180)
-// Known bug: incorrectly draws whole map if flight lines span the meridian...
-function getVisibleDataExtent(layer) {
-  var bounds = layer.getDataExtent();
-  if(! bounds) return null;
-  if(bounds.left < -180 && bounds.left > -360 && bounds.right > 180 && bounds.right < 360) {
-    // map spans the world, do nothing
-  } else {
-    if(bounds.left < -180) bounds.left += 360;
-    if(bounds.right > 180) bounds.right -= 360;
-  }
-  return bounds;
+  return point.x !== null && point.y !== null && !isNaN(point.x) && !isNaN(point.y);
 }
 
 ////
