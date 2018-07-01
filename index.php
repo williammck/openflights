@@ -10,6 +10,7 @@ require_once("./php/helper.php");
     <meta name="description" content="Free open-source tool for logging, mapping, calculating and sharing your flights and trips.">
     <meta name="keywords" content="flight,memory,logging,mapping,statistics,sharing">
     <link rel="stylesheet" href="/css/style_reset.css" type="text/css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/leaflet.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
     <link rel="stylesheet" href="<?php echo fileUrlWithDate("/openflights.css") ?>" type="text/css">
@@ -33,7 +34,7 @@ require_once("./php/helper.php");
 
     <div id="mainContainer">
       <div id="ajaxloader">
-        <span id="ajaxstatus" style="display: none"><img src="/img/ajax-wait.gif" height=100 width=100/></span>
+        <span id="ajaxstatus" style="display: none"><i class="fas fa-spinner fa-9x fa-pulse" style="color: #222;"></i></span>
       </div>
 
       <div id="sideBarContentWrapper">
@@ -43,13 +44,15 @@ require_once("./php/helper.php");
 	    </div>
 
 	    <div id="news" style="display: none">
-	      <img src="/img/close.gif" height=17 width=17 onClick='JavaScript:closeNews()'>
+          <a href="#" onclick="closeNews()"><i class="fas fa-window-close fa-lg"></i></a>
   <B><?php echo _("News")?> </b>: 
 <?php include("./html/news.html") ?>
 	    </div>
 
 	    <div id="quicksearch" style="display: none">
-              <img src="/img/layer-switcher-minimize.png" height=18 width=18 title="<?php echo _("Hide search bar") ?>" onClick="$('quicksearch').style.display='none'">
+          <a href="#" onclick="$('quicksearch').style.display = 'none'">
+            <i class="far fa-minus-square fa-lg" style="color: #fff;" title="<?php echo _("Hide search bar") ?>"></i>
+          </a>
   <input type="text" name="qs" id="qs" size="60" tabindex="5" onKeyDown='keyPress(event, "qs")' class="textbox" placeholder="<?php echo _("Enter city, airport, airline name or code") ?>"/><div id="qsAC"></div>
 	      <input type="hidden" name="qsid" id="qsid"/>
 	      <input type="button" id="qsgo" tabindex="6" value="<?php echo _("Search") ?>" title="<?php echo _("Map of routes from this airport") ?>" align="middle" onclick='JavaScript:goQuickSearch()' DISABLED>
@@ -103,7 +106,7 @@ require_once("./php/helper.php");
 	      <table style='width: 218px'>
 		<tr><td style='vertical-align: top'>
 		    <span id="stats"></span>
-		    <span id="stats_ajax" style="display: none">&nbsp;<img src='/img/ajax-wait-small.gif' height=16 width=16/></span>
+		    <span id="stats_ajax" style="display: none">&nbsp;<i class="fas fa-spinner fa-lg fa-pulse" style="color: inherit;"></i></span>
 		  </td><td style='vertical-align: top; text-align: right; padding: 0px 5px'>
 		    <input type="button" value="<?php echo _("Analyze") ?>" align="middle" onclick='JavaScript:xmlhttpPost("/php/stats.php")'><br>
 		    <input type="button" value="<?php echo _("Top 10") ?>" align="middle" onclick='JavaScript:updateTop10()'>
@@ -122,7 +125,12 @@ require_once("./php/helper.php");
 		  <td><?php echo _("Year") ?></td>
 		  <td><span id="filter_yearselect"><select class="filter" name="Years"><option value="">All</option></select></span></td>
 		</tr><tr>
-		  <td><?php echo _("Trip") ?><a href="#help" onclick='JavaScript:help("trip")'><img src="/img/icon_help.png" title="Help: What is a trip?" height=11 width=10></a></td>
+		  <td>
+            <?php echo _("Trip") ?>
+            <a href="#help" onclick='JavaScript:help("trip")'>
+              <i class="fas fa-question-circle fa-sm" title="Help: What is a trip?"></i>
+            </a>
+          </td>
 		  <td><span id="filter_tripselect"></span>
 		</tr><tr>
 		  <td colspan=2><select style="width: 100px" id="filter_extra_key" name="Extra" onChange="JavaScript:setExtraFilter()" style="visibility: hidden">
@@ -161,7 +169,7 @@ require_once("./php/helper.php");
 	  </div>
 
 	  <div id="help" style="display: none;">
-<h2><img src="/img/close.gif" height=17 width=17 onClick='JavaScript:closePane()'> OpenFlights Map Help <small>&mdash; Didn't answer your question?  Try the <a href="faq.html" target="_blank">FAQ</a>.</small></h2>
+<h2><a href="#" onclick="closePane()"><i class="fas fa-window-close"></i></a> OpenFlights Map Help <small>&mdash; Didn't answer your question?  Try the <a href="faq.html" target="_blank">FAQ</a>.</small></h2>
 <p><b>View airport</b>: Click on an airport <img src="/img/icon_plane-15x15.png" height=15 width=15> to view details.<br>
 <b>Move around</b>: Click and drag your mouse, or pan with two fingers on a mobile device.<br>
 <b>Zoom in/out</b>: Use the zoom controls in the top left, scroll with your mouse, pinch with two fingers, or double-click on the point you want to zoom to.<br>
@@ -169,7 +177,7 @@ require_once("./php/helper.php");
 <b>Map options</b>: To choose your map type and what to show on it, hover over the layer controls in the top right.<br></p>
 	  </div> <!-- end help -->
 	  <div id="input" style="display: none;">
-<h2><img src="/img/close.gif" height=17 width=17 onClick='JavaScript:closeInput()'>
+<h2><a href="#" onclick="closeInput()"><i class="fas fa-window-close"></i></a>
     <span id="addflighttitle"><?php echo _("Add new flight") ?></span>
     <span id="editflighttitle" style="display: none"><?php echo _("Edit flight") ?></span>
     <small>&mdash; <?php echo _("Fields in <font color='blue'>blue</font> are required.  Click on airports in the map to select them or search by city name or airport code.") ?></small>
@@ -184,19 +192,38 @@ require_once("./php/helper.php");
   <td colspan=2><input type="text" name="src_date" id="src_date" size="11" class="date" tabindex="11" onChange="JavaScript:calcDuration('DEPARTURE');"/>
 <input type="text" name="src_time" id="src_time" tabindex="12" size="5" class="miniTextbox" placeholder="HH:MM" onChange="JavaScript:calcDuration('DEPARTURE')"/> &rarr;
 <input type="text" name="dst_time" id="dst_time" size="5" class="miniTextbox" placeholder="HH:MM" onChange="JavaScript:calcDuration('ARRIVAL')"/>
-<input type="text" name="dst_days" id="dst_days" size="6" value="" style="border: 0px; display: none" onChange="JavaScript:markAsChanged()"/><img src="/img/icon_clock.png" id="icon_clock" title="<?php echo _("Departure and arrival time") ?>" height="16" width="16" onclick='JavaScript:help("time")'/>
+<input type="text" name="dst_days" id="dst_days" size="6" value="" style="border: 0px; display: none" onChange="JavaScript:markAsChanged()"/>
+<a href='#' onclick='JavaScript:help("time")'>
+  <i class="far fa-clock fa-lg" id="icon_clock" title="<?php echo _("Departure and arrival time") ?>"></i>
+</a>
   </td>
 
-  <td><?php echo _("Trip") ?><a href="#help" onclick='JavaScript:help("trip")'><img src="/img/icon_help.png" title="Help: What is a trip?" height=11 width=10></a></td>
-  <td width=""><span id="input_trip_select"></span> <img src="/img/icon_add.png" title="<?php echo _("Add new trip") ?>" height=17 width=17 onclick='JavaScript:editTrip("ADD")'/><img src="/img/icon_edit.png" title="<?php echo _("Edit this trip") ?>" height=17 width=17 onclick='JavaScript:editTrip("EDIT")'/></td>
+  <td>
+    <?php echo _("Trip") ?>
+    <a href="#help" onclick='JavaScript:help("trip")'>
+      <i class="fas fa-question-circle fa-sm" title="Help: What is a trip?"></i>
+    </a>
+  </td>
+  <td width="">
+    <span id="input_trip_select"></span>
+    <a href='#' onclick='JavaScript:editTrip("ADD")'><i class="fas fa-plus fa-lg fa-fw" title="<?php echo _("Add new trip") ?>"></i></a>
+    <a href='#' onclick='JavaScript:editTrip("EDIT")'><i class="fas fa-edit fa-lg fa-fw" title="<?php echo _("Edit this trip") ?>"></i></a>
+  </td>
 
 </tr><tr>
-  <td><font color="blue"><?php echo _("From") ?></font><a href="#help" onclick='JavaScript:help("airport")'><img src="/img/icon_help.png" title="Help: How do I enter airports?" height=11 width=10></a></td>
+  <td>
+    <font color="blue"><?php echo _("From") ?></font>
+    <a href="#help" onclick='JavaScript:help("airport")'>
+      <i class="fas fa-question-circle fa-sm" title="Help: How do I enter airports?"></i>
+    </a>
+  </td>
   <td><input type="text" name="src_ap" id="src_ap" size="60" tabindex="14" onKeyDown='keyPress(event, "src_ap")' class="textbox" placeholder="<?php echo _("Enter city name or airport code") ?>"/><div id="src_apAC"></div>
       <input type="hidden" name="src_apid" id="src_apid"/></td>
-  <td rowspan=2 valign=middle align=left>
-    <img src="/img/icon_plane-src.png" title="<?php echo _("Airport search") ?>" height=17 width=17 onclick='JavaScript:popNewAirport("src_ap")'/ style="margin-left: 5px"/> <img src="/img/swap-icon.png" title="<?php echo _("Swap To and From airports") ?>" height=17 width=17 onclick='JavaScript:swapAirports(true)' style="margin-right: 10px"/><br>
-    <img src="/img/icon_plane-dst.png" title="<?php echo _("Airport search") ?>" height=17 width=17 onclick='JavaScript:popNewAirport("dst_ap")'/ style="margin-left: 5px"/>
+  <td rowspan=2 valign=middle align=left style="padding-left: 5px; padding-right: 10px;">
+    <a href="#" onclick="popNewAirport('src_ap')"><i class="fas fa-plane-departure fa-lg fa-fw" title="<?= _("Airport search") ?>"></i></a>
+    <a href="#" onclick="swapAirports(true)"><i class="fas fa-sync fa-lg fa-fw" title="<?php echo _("Swap To and From airports") ?>"></i></a>
+    <br>
+    <a href="#" onclick="popNewAirport('dst_ap')"><i class="fas fa-plane-arrival fa-lg fa-fw" style="margin-top: 5px;" title="<?= _("Airport search") ?>"></i></a>
   </td>
 
   <td><?php echo _("Plane") ?></td>
@@ -205,7 +232,12 @@ require_once("./php/helper.php");
   </td>
 
 </tr><tr>
-  <td><font color="blue"><?php echo _("To") ?></font><a href="#help" onclick='JavaScript:help("airport")'><img src="/img/icon_help.png" title="Help: How do I enter airports?" height=11 width=10></a></td>
+  <td>
+    <font color="blue"><?php echo _("To") ?></font>
+    <a href="#help" onclick='JavaScript:help("airport")'>
+      <i class="fas fa-question-circle fa-sm" title="Help: How do I enter airports?"></i>
+    </a>
+  </td>
   <td><input type="text" name="dst_ap" id="dst_ap" size="60" tabindex="15" onKeyDown='keyPress(event, "dst_ap")' class="textbox" placeholder="<?php echo _("Enter city name or airport code") ?>"/><div id="dst_apAC"></div>
       <input type="hidden" name="dst_apid" id="dst_apid"/></td>
 
@@ -240,10 +272,16 @@ require_once("./php/helper.php");
   </td>
 
 </tr><tr>
-  <td><?php echo _("Carrier") ?><a href="#help" onclick='JavaScript:help("airline")'><img src="/img/icon_help.png" title="Help: How do I enter airlines?" height=11 width=10></a></td>
+  <td>
+    <?php echo _("Carrier") ?>
+    <a href="#help" onclick='JavaScript:help("airline")'>
+      <i class="fas fa-question-circle fa-sm" title="Help: How do I enter airlines?"></i>
+    </a>
+  </td>
   <td><input type="text" name="airline" id="airline" size="60" tabindex="20" onKeyDown='keyPress(event, "airline")' class="textbox" placeholder="<?php echo _("Enter airline name or code") ?>"/><div id="airlineAC"></div>
       <input type="hidden" name="airlineid" id="airlineid"/> </td>
-  <td><img id="icon_airline" src="/img/icon_airline.png" title="<?php echo _("Airline search") ?>" height=17 width=17 onclick='JavaScript:popNewAirline("airline")' style="margin-left: 5px"/>
+  <td style="padding-left: 5px;">
+    <a href="#" onclick="popNewAirline('airline')"><i id="icon_airline" class="fas fa-plane fa-lg fa-fw" title="<?= _("Airline search") ?>"></i></a>
   </td>
 
   <td colspan=2><span id="input_status"></span></td>
@@ -274,15 +312,15 @@ require_once("./php/helper.php");
 	</div>
 
 	  <div id="multiinput" style="display: none;">
-<h2><img src="/img/close.gif" height=17 width=17 onClick='JavaScript:closeInput()'> <?php echo _("Add new flights") . "<small>&mdash; " . _("Fields in <font color='blue'>blue</font> are required.  Click on airports in the map to select them or search by city name or airport code.") ?></small></h2>
+<h2><a href="#" onclick="closeInput()"><i class="fas fa-window-close"></i></a> <?php echo _("Add new flights") . "<small>&mdash; " . _("Fields in <font color='blue'>blue</font> are required.  Click on airports in the map to select them or search by city name or airport code.") ?></small></h2>
 <p></p>
 
 <form id='multiinputform'>
 <table>
 <tr>
-  <td><font color="blue"><?php echo _("From") ?></font><a href="#help" onclick='JavaScript:help("airport")'><img src="/img/icon_help.png" title="Help: How do I enter where I flew from?" height=11 width=10></a></td>
-  <td><font color="blue"><?php echo _("To") ?></font><a href="#help" onclick='JavaScript:help("airport")'><img src="/img/icon_help.png" title="Help: How do I enter where I flew to?" height=11 width=10></a></td>
-  <td><?php echo _("Airline") ?><a href="#help" onclick='JavaScript:help("airline")'><img src="/img/icon_help.png" title="Help: How do I enter the airline?" height=11 width=10></a></td>
+  <td><font color="blue"><?php echo _("From") ?></font><a href="#help" onclick='JavaScript:help("airport")'><i class="fas fa-question-circle fa-sm" title="Help: How do I enter where I flew from?"></i></a></td>
+  <td><font color="blue"><?php echo _("To") ?></font><a href="#help" onclick='JavaScript:help("airport")'><i class="fas fa-question-circle fa-sm" title="Help: How do I enter where I flew to?"></i></a></td>
+  <td><?php echo _("Airline") ?><a href="#help" onclick='JavaScript:help("airline")'><i class="fas fa-question-circle fa-sm" title="Help: How do I enter the airline?"></i></a></td>
   <td><?php echo _("Date") ?></td>
 </tr>
 <?php
@@ -290,13 +328,13 @@ for($row = 1; $row <= 4; $row++) {
   echo "<tr id='row$row' " . ($row > 1 ? "style='display: none;'" : "") . "> <!-- Row $row -->\n";
   printf("<td><input type='text' name='src_ap%s' id='src_ap%s' size='32' tabindex='1%s1' onKeyDown='keyPress(event, \"src_ap%s\")' class='textbox' placeholder=\"%s\"/><span id='src_ap{$row}AC'></span>\n", $row, $row, $row, $row, _("Enter city name or airport code"));
   printf("<input type='hidden' name='src_ap%sid' id='src_ap%sid'>\n", $row, $row);
-  printf("<img src='/img/icon_plane-src.png' title=\"%s\" height=17 width=17 onclick='JavaScript:popNewAirport(\"src_ap$row\")'/ style='margin-right: 5px'/></td>\n", _("Airport search"));
+  printf("<a href='#' onclick='popNewAirport(\"src_ap$row\")'><i class='fas fa-plane-departure fa-lg fa-fw' title='%s' style='margin-right: 5px;'></i></a></td>\n", _("Airport search"));
   printf("<td><input type='text' name='dst_ap%s' id='dst_ap%s' size='32' tabindex='1%s2' onKeyDown='keyPress(event, \"dst_ap%s\")' class='textbox' placeholder=\"%s\"/><span id='dst_ap%sAC'></span>\n", $row, $row, $row, $row, _("Enter city name or airport code"), $row);
   printf ("<input type='hidden' name='dst_ap1%s' id='dst_ap%sid'/>\n", $row, $row);
-  printf ("<img src='/img/icon_plane-dst.png' title='%s' height=17 width=17 onclick='JavaScript:popNewAirport(\"dst_ap$row\")' style='margin-right: 5px'/></td>\n", _("Airport search"));
+  printf ("<a href='#' onclick='popNewAirport(\"dst_ap$row\")'><i class='fas fa-plane-arrival fa-lg fa-fw' title='%s' style='margin-right: 5px;'></i></a></td>\n", _("Airport search"));
   printf ("<td><input type='text' name='airline%s' id='airline%s' size='32' tabindex='1%s3' onKeyDown='keyPress(event, \"airline%s\")' class='textbox' placeholder=\"%s\"/><span id='airline{$row}AC'></span>\n", $row, $row, $row, $row, _("Enter airline name or code"));
-  printf ("<input type='hidden' name='airline%sid' id='airline%sid'/><img src='/img/icon_airline.png' title='%s' height=17 width=17 onclick='JavaScript:popNewAirline(\"airline1\")'/ style='margin-right: 5px'/></td>\n", $row, $row, _("Airline search"));
-  printf ("<td><input type='text' name='src_date%s' id='src_date%s' size='11' class='date' tabindex='1%s4' onChange='JavaScript:markAsChanged()';/></td></tr>\n", $row, $row, $row, $row);
+  printf ("<input type='hidden' name='airline%sid' id='airline%sid'/><a href='#' onclick='popNewAirline(\"airline$row\")'><i class='fas fa-plane fa-lg fa-fw' title='%s' style='margin-right: 5px;'></i></a></td>\n", $row, $row, _("Airline search"));
+  printf ("<td><input type='text' name='src_date%s' id='src_date%s' size='11' class='date' tabindex='1%s4' onChange='JavaScript:markAsChanged()'/></td></tr>\n", $row, $row, $row, $row);
 }
 ?>
 <tr>

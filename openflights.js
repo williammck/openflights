@@ -75,8 +75,8 @@ var airportIcons = [ [ '/img/icon_plane-13x13.png', 13 ],
 // Redefined with localized strings under init
 var classes, seattypes, reasons, classes_short, reasons_short, modenames, modesegments, modeoperators, topmodes;
 var modecolors = { "F":COLOR_NORMAL, "T":COLOR_TRAIN, "R":COLOR_ROAD, "S":COLOR_SHIP };
-var modeicons = { "F":'/img/icon_airline.png', "T": '/img/icon_train.png',
-		  "R": '/img/icon_car.png', "S": '/img/icon_ship.png' };
+var modeicons = { "F":'plane', "T": 'train',
+		  "R": 'car', "S": 'ship' };
 var modespeeds = { "F":500, "T":100, "R":60, "S":40 };
 var toplimits = { "10":"Top 10", "20":"Top 20", "50":"Top 50", "-1":"All" };
 
@@ -368,8 +368,8 @@ function onAirportSelect(airport) {
   rdesc = airport.attributes.rdesc;
 
   // Add toolbar to popup
-  desc = "<span style='position: absolute; right: 8px; bottom: 3px;'>" +
-    "<a href='#' onclick='JavaScript:selectAirport(" + apid + ", true);'><img src='/img/icon_plane-src.png' width=17 height=17 title='" + gt.gettext("Select this airport") + "' id='popup" + apid + "' style='visibility: hidden'></a>";
+  desc = "<span style='position: absolute; right: 8px; bottom: 6px;'>" +
+    "<a href='#' onclick='JavaScript:selectAirport(" + apid + ", true);'><i class='fas fa-plane-departure fa-lg' title='" + gt.gettext("Select this airport") + "' id='popup" + apid + "' style='visibility: hidden'></i></a>";
 
   if(coreid == 0) {
     // Detailed flights accessible only if...
@@ -378,7 +378,7 @@ function onAirportSelect(airport) {
     // 3. privacy is set to (O)pen
     if( logged_in || demo_mode || privacy == "O") {
 // Get list of user flights
-desc += " <a href='#' onclick='JavaScript:xmlhttpPost(\"" + URL_FLIGHTS + "\"," + apid + ", \"" + encodeURI(airport.attributes.desc) + "\");'><img src='/img/icon_copy.png' width=16 height=16 title='" + gt.gettext("List my flights") + "'></a>";
+desc += " <a href='#' onclick='JavaScript:xmlhttpPost(\"" + URL_FLIGHTS + "\"," + apid + ", \"" + encodeURI(airport.attributes.desc) + "\");'><i class='fas fa-copy fa-lg fa-fw' title='" + gt.gettext("List my flights") + "'></i></a>";
     }
   } else {
     if(code.length == 3) {
@@ -388,14 +388,14 @@ if(coreid.startsWith("L")) {
 } else {
   idstring = "R" + apid + "," + coreid;
 }
-desc += " <a href='#' onclick='JavaScript:xmlhttpPost(\"" + URL_FLIGHTS + "\",\"" + idstring + "\", \"" + encodeURI(rdesc) + "\");'><img src='/img/icon_copy.png' width=16 height=16 title='" + gt.gettext("List routes") + "'></a> ";
+desc += " <a href='#' onclick='JavaScript:xmlhttpPost(\"" + URL_FLIGHTS + "\",\"" + idstring + "\", \"" + encodeURI(rdesc) + "\");'><i class='fas fa-copy fa-lg fa-fw' title='" + gt.gettext("List routes") + "'></i></a> ";
     }
   }
   if(code.length == 3) {
     // IATA airport, we know its routes
-    desc += " <a href='#' onclick='JavaScript:xmlhttpPost(\"" + URL_ROUTES + "\"," + apid + ");'><img src='/img/icon_routes.png' width=17 height=17 title='" + gt.gettext("Map of routes from this airport") + "'></a>";
+    desc += " <a href='#' onclick='JavaScript:xmlhttpPost(\"" + URL_ROUTES + "\"," + apid + ");'><i class='fas fa-map-marked fa-lg fa-fw' title='" + gt.gettext("Map of routes from this airport") + "'></i></a>";
   }
-  desc += " <a href='#' onclick='JavaScript:popNewAirport(null, " + apid + ")'><img src='/img/icon_edit.png' width=16 height=16 title='" + gt.gettext("View airport details") + "'></a>";
+  desc += " <a href='#' onclick='JavaScript:popNewAirport(null, " + apid + ")'><i class='fas fa-edit fa-lg fa-fw' title='" + gt.gettext("View airport details") + "'></i></a>";
   desc += "</span>" + airport.attributes.desc.replace("Flights:", gt.gettext("Flights:"));
 
   if (airport.getPopup() == null) {
@@ -997,7 +997,7 @@ function getMapTitle(closable) {
 
   // Add X for easy filter removal (only for logged-in users with non-null titles)
   if(closable && logged_in && text != "") {
-    text = "<img src=\"/img/close.gif\" onclick=\"JavaScript:clearFilter(true);\" width=17 height=17> " + text;
+    text = '<a href="#" onclick="clearFilter(true)"><i class="fas fa-window-close"></i></a> ' + text;
   }
   return text;
 }
@@ -1193,10 +1193,10 @@ function updateMap(str, url){
       title = gt.gettext("List all routes from this airport");
     }
 
-    var maptitle = "<img src=\"/img/close.gif\" onclick=\"JavaScript:clearFilter(true);\" width=17 height=17> " + desc;
+    var maptitle = '<a href="#" onclick="clearFilter(true)"><i class="fas fa-window-close"></i></a> ' + desc;
     var form = document.forms['filterform'];    
     filter_alid = form.Airlines.value.split(";")[0];
-    maptitle += " <a href='#' onclick='JavaScript:xmlhttpPost(\"" + URL_FLIGHTS + "\",\"" + coreid + "\", \"" + encodeURI(desc) + "\");'><img src='/img/icon_copy.png' width=16 height=16 title='" + title + "'></a>";
+    maptitle += " <a href='#' onclick='JavaScript:xmlhttpPost(\"" + URL_FLIGHTS + "\",\"" + coreid + "\", \"" + encodeURI(desc) + "\");'><i class='fas fa-copy' title='" + title + "'></i></a>";
     if(filter_alid != 0 && ! apid.startsWith("L")) {
       maptitle += " <small>on " + form.Airlines.value.split(";")[1] + "</small> " + getAirlineMapIcon(filter_alid);
     }
@@ -1284,7 +1284,7 @@ function listFlights(str, desc, id) {
   
   // IE string concat is painfully slow, so we use an array and join it instead
   var table = [];
-  table.push("<img src=\"/img/close.gif\" onclick=\"JavaScript:closePane();\" width=17 height=17> ");
+  table.push('<a href="#" onclick="closePane()"><i class="fas fa-window-close fa-lg"></i></a> ');
   if(str == "") {
     table.push("<i>" + gt.gettext("No flights found at this airport.") + "</i></span></div>");
   } else {
@@ -1338,7 +1338,7 @@ function listFlights(str, desc, id) {
       if(logged_in && trip != "") {
 	trip = "<a href=\"#\" onclick=\"JavaScript:editTrip(" + trip + ");\">" + trip + "</a>";
       }
-      table.push("<tr><td><img src='" + modeicon + "' title='" + modename + "' width=17 height=17></td>" +
+      table.push("<tr><td><i class='fas fa-" + modeicon + " fa-lg' title='" + modename + "'></i></td>" +
 		 "<td><a href=\"#\" onclick=\"JavaScript:selectAirport(" + col[1] + ");\">" + col[0] + "</a></td>" +
 		      "<td><a href=\"#\" onclick=\"JavaScript:selectAirport(" + col[3] + ");\">" + col[2] + "</a></td>" +
 		 "<td>");
@@ -1361,9 +1361,9 @@ function listFlights(str, desc, id) {
       table.push("<td>" + note + "</td>");
       if(logged_in && !route) {
 	      table.push("<td>");
-	      table.push("<a href='#' onclick='JavaScript:preEditFlight(" + fid + "," + r + ");'><img src='/img/icon_edit.png' width=16 height=16 title='" + gt.gettext("Edit this flight") + "'></a>");
-	      table.push("<a href='#' onclick='JavaScript:preCopyFlight(" + fid + ");'><img src='/img/icon_copy.png' width=16 height=16 title='" + gt.gettext("Copy to new flight") + "'></a>");
-	      table.push("<a href='#' onclick='JavaScript:deleteFlight(" + fid + ");'><img src='/img/icon_delete.png' width=16 height=16 title='" + gt.gettext("Delete this flight") + "'></a>");
+	      table.push("<a href='#' onclick='JavaScript:preEditFlight(" + fid + "," + r + ");'><i class='fas fa-edit fa-lg fa-fw' title='" + gt.gettext("Edit this flight") + "'></i></a>");
+	      table.push("<a href='#' onclick='JavaScript:preCopyFlight(" + fid + ");'><i class='fas fa-copy fa-lg fa-fw' title='" + gt.gettext("Copy to new flight") + "'></i></a>");
+	      table.push("<a href='#' onclick='JavaScript:deleteFlight(" + fid + ");'><i class='fas fa-trash fa-lg fa-fw' title='" + gt.gettext("Delete this flight") + "'></i></a>");
 	      table.push("</td>");
       }
       table.push("</tr>");
@@ -1414,7 +1414,7 @@ function showStats(str) {
     var modeData = master[6];
     var classDataByDistance = master[7];
 
-    bigtable = "<table><td style=\"vertical-align: top\"><img src=\"/img/close.gif\" onclick=\"JavaScript:closePane();\" width=17 height=17></td><td style=\"vertical-align: top\">";
+    bigtable = '<table><td style="vertical-align: top"><a href="#" onclick="closePane()"><i class="fas fa-window-close fa-lg"></i></a></td><td style="vertical-align: top">';
 
     table = "<table style=\"border-spacing: 10px 0px\">";
     table += "<tr><th colspan=2>" + gt.gettext("Unique") + "</th></tr>";
@@ -1584,7 +1584,7 @@ function showTop10(str) {
     var airports = master[1];
     var airlines = master[2];
     var planes = master[3];
-    bigtable = "<table style='width: 100%; border-collapse: collapse'><td style='vertical-align: top; padding-right: 10px'><img src='/img/close.gif' onclick='JavaScript:closePane();' width=17 height=17><form id='top10form'>";
+    bigtable = "<table style='width: 100%; border-collapse: collapse'><td style='vertical-align: top; padding-right: 10px'><a href='#' onclick='closePane()'><i class='fas fa-window-close fa-lg'></i></a><form id='top10form'>";
     table = "<br>" + gt.gettext("Show...") + "<br>";
     table += createSelectFromArray('limit', toplimits, "updateTop10()", limit) + "<br>";
     table += gt.gettext("Sort by...") + "<br>";
@@ -1854,7 +1854,7 @@ function changeMode(mode) {
   if(!mode) {
     mode=document.forms['inputform'].mode.value;
   }
-  $('icon_airline').src = modeicons[mode];
+  $('icon_airline').className = "fas fa-" + modeicons[mode] + " fa-lg fa-fw";
   $('icon_airline').title = Gettext.strargs(gt.gettext("Search for %1"), [modeoperators[mode]]);
   calcDuration('AIRPORT'); // recompute duration estimate
   markAsChanged(true);
@@ -2637,7 +2637,7 @@ function selectAirline(new_alid, edit) {
 }
 
 function getAirlineMapIcon(alid) {
-  return "<a href='#' onclick='JavaScript:showAirlineMap(" + alid + ")'><img src='/img/icon_routes.png' width=16 height=16 title='" + gt.gettext("Show airline route map") + "'></a>";
+  return "<a href='#' onclick='JavaScript:showAirlineMap(" + alid + ")'><i class='fas fa-map-marked fa-lg' title='" + gt.gettext("Show airline route map") + "'></i></a>";
 }
 
 //
@@ -2773,7 +2773,7 @@ function login(str, param) {
     case "X":
       $("news").style.display = 'inline';
       $("news").innerHTML = getEliteIcon("X") +
-	"<img src='/img/close.gif' height=17 width=17 onClick='JavaScript:closeNews()'> " + 
+	'<a href="#" onclick="closeNews()"><i class="fas fa-window-close fa-lg"></i></a> ' +
 	gt.gettext("<b>Welcome back!</b>  We're delighted to see that you like OpenFlights.<br>Please <a href='/donate' target='_blank'>donate and help keep the site running</a>!");
       break;
 
@@ -2788,7 +2788,7 @@ function login(str, param) {
 
     if(param == "NEWUSER") {
       $("news").innerHTML =
-	"<img src='/img/close.gif' height=17 width=17 onClick='JavaScript:closeNews()'> " + 
+	'<a href="#" onclick="closeNews()"><i class="fas fa-window-close fa-lg"></i></a> ' +
 	Gettext.strargs(gt.gettext("<B>Welcome to OpenFlights!</b>  Click on %1 to start adding flights, or on %2 to load in existing flights from sites like FlightMemory."),
 			[ "<input type='button' value='" + gt.gettext("New flight") + "' align='middle' onclick='JavaScript:newFlight()'>",
 			  "<input type='button' value='" + gt.gettext("Import") + "' align='middle' onclick='JavaScript:openImport()'>" ]);

@@ -262,3 +262,8 @@ select.filter {  width: 160px; }
 .ui-datepicker {
   z-index: 2000 !important;
 }
+
+/* Font Awesome styles (to match old buttons) */
+.far, .fas {
+    color: #3399ff;
+}

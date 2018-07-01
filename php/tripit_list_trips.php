@@ -447,8 +447,17 @@ function display_segment($segment) {
       <br>
 
       <?php # TODO: Figure out what to do with trip. ?>
-      <!--td><?php echo _("Trip") ?><a href="#help" onclick='JavaScript:help("trip")'><img src="/img/icon_help.png" title="Help: What is a trip?" height=11 width=10></a></td>
-      <td width=""><span id="input_trip_select"></span> <img src="/img/icon_add.png" title="<?php echo _("Add new trip") ?>" height=17 width=17 onclick='JavaScript:editTrip("ADD")'/><img src="/img/icon_edit.png" title="<?php echo _("Edit this trip") ?>" height=17 width=17 onclick='JavaScript:editTrip("EDIT")'/></td-->
+      <!--td>
+        <?php echo _("Trip") ?>
+        <a href="#help" onclick='JavaScript:help("trip")'>
+          <i class="fas fa-question-circle fa-sm" title="Help: What is a trip?"></i>
+        </a>
+      </td>
+      <td width="">
+        <span id="input_trip_select"></span>
+        <a href='#' onclick='JavaScript:editTrip("ADD")'><i class="fas fa-plus fa-lg fa-fw" title="<?php echo _("Add new trip") ?>"></i></a>
+        <a href='#' onclick='JavaScript:editTrip("EDIT")'><i class="fas fa-edit fa-lg fa-fw" title="<?php echo _("Edit this trip") ?>"></i></a>
+      </td-->
 
       <?php echo _("Plane") ?>: <?php echo $aircraft ?>
       <input type="hidden" id="plane" name="plane" value="<?php echo $aircraft ?>"/>
