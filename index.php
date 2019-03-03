@@ -32,6 +32,12 @@ require_once("./php/helper.php");
 
   <body>
 
+    <div id="news-content">
+        <a href="#" onclick="closeNews()"><i class="fas fa-window-close fa-lg"></i></a>
+        <strong><?php echo _("News")?></strong>:
+        <?php include("./html/news.html") ?>
+    </div>
+
     <div id="mainContainer">
       <div id="ajaxloader">
         <span id="ajaxstatus" style="display: none"><i class="fas fa-spinner fa-9x fa-pulse" style="color: #222;"></i></span>
@@ -41,12 +47,6 @@ require_once("./php/helper.php");
 	<div id="contentContainer">
       <noscript><?php echo _("Sorry, OpenFlights requires JavaScript.") ?></noscript>
 	  <div id="map"></div>
-
-	    <div id="news" style="display: none">
-          <a href="#" onclick="closeNews()"><i class="fas fa-window-close fa-lg"></i></a>
-  <B><?php echo _("News")?> </b>: 
-<?php include("./html/news.html") ?>
-	    </div>
 
 	    <div id="quicksearch" style="display: none">
           <a href="#" onclick="$('quicksearch').style.display = 'none'">

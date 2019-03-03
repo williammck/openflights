@@ -224,6 +224,49 @@ function init(){
 
   (new L.Control.MapTitle).addTo(map);
 
+  L.Control.News = L.Control.extend({
+    options: {
+      position: 'bottomleft'
+    },
+
+    initialize: function (options) {
+      L.Util.setOptions(this, options || {});
+
+      this._news = document.getElementById('news-content').innerHTML;
+    },
+
+    onAdd: function (map) {
+      map.news = this;
+
+      this._container = L.DomUtil.create('div', 'leaflet-control-news');
+      L.DomEvent.disableClickPropagation(this._container);
+
+      this._update();
+
+      return this._container;
+    },
+
+    getNews: function () {
+      return this._news;
+    },
+
+    setNews: function (text) {
+      this._news = text;
+
+      this._update();
+
+      return this;
+    },
+
+    _update: function () {
+      this._container.style.display = this._news ? 'block' : 'none';
+
+      this._container.innerHTML = this._news;
+    }
+  });
+
+  (new L.Control.News).addTo(map);
+
   // Extract any arguments from URL
   var query;
   arguments = parseUrl();
@@ -252,7 +295,6 @@ function init(){
       $("filter_tripselect").style.display = 'none';
     }
   } else {
-    $("news").style.display = 'inline';
     $("quicksearch").style.display = 'inline';
 
     // Nope, set up hinting and autocompletes for editor
@@ -374,8 +416,7 @@ function drawAirport(airportLayer, apdata, name, city, country, count, formatted
   }
   // This should never happen
   if(! airportIcons[colorIndex]) {
-    $("news").style.display = 'inline';
-    $("news").innerHTML = "ERROR: " + name + ":" + colorIndex + " of " + airportMaxFlights + ".i<br>Please hit CTRL-F5 to force refresh, and <a href='/about.html'>report</a> this error if it does not go away.";
+    map.news.setNews("ERROR: " + name + ":" + colorIndex + " of " + airportMaxFlights + ".i<br>Please hit CTRL-F5 to force refresh, and <a href='/about.html'>report</a> this error if it does not go away.");
     colorIndex = 0;
     return;
   }
@@ -2814,10 +2855,9 @@ function login(str, param) {
     
     switch(elite) {
     case "X":
-      $("news").style.display = 'inline';
-      $("news").innerHTML = getEliteIcon("X") +
+      map.news.setNews(getEliteIcon("X") +
 	'<a href="#" onclick="closeNews()"><i class="fas fa-window-close fa-lg"></i></a> ' +
-	gt.gettext("<b>Welcome back!</b>  We're delighted to see that you like OpenFlights.<br>Please <a href='/donate' target='_blank'>donate and help keep the site running</a>!");
+	gt.gettext("<b>Welcome back!</b>  We're delighted to see that you like OpenFlights.<br>Please <a href='/donate' target='_blank'>donate and help keep the site running</a>!"));
       break;
 
     case "G":
@@ -2830,12 +2870,11 @@ function login(str, param) {
     }
 
     if(param == "NEWUSER") {
-      $("news").innerHTML =
+      map.news.setNews(
 	'<a href="#" onclick="closeNews()"><i class="fas fa-window-close fa-lg"></i></a> ' +
 	Gettext.strargs(gt.gettext("<B>Welcome to OpenFlights!</b>  Click on %1 to start adding flights, or on %2 to load in existing flights from sites like FlightMemory."),
 			[ "<input type='button' value='" + gt.gettext("New flight") + "' align='middle' onclick='JavaScript:newFlight()'>",
-			  "<input type='button' value='" + gt.gettext("Import") + "' align='middle' onclick='JavaScript:openImport()'>" ]);
-      $("news").style.display = 'inline';
+			  "<input type='button' value='" + gt.gettext("Import") + "' align='middle' onclick='JavaScript:openImport()'>" ]));
     } else {
       closeNews();
     }
@@ -3120,7 +3159,7 @@ function clearInput() {
 }
 
 function closeNews() {
-  $("news").style.display = 'none';
+  map.news.setNews(null);
 }
 
 // user has selected a new field in the extra filter

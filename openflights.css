@@ -56,17 +56,8 @@
         height: 100%;
 	}
 
-#news { 
-  left: 1em;
-  bottom: 2em;
-  position: absolute;
-  font-size:1em;
-  filter:alpha(opacity=80);
-  opacity: 0.8;
-  background: white;
-  z-index: 1001;
-  padding: 10px;
-  -moz-border-radius: 1em;
+#news-content {
+  display: none;
 }
 
 #newairport {
@@ -256,13 +247,17 @@ select.filter {  width: 160px; }
 }
 
 /* Custom Leaflet Control styles */
-.leaflet-control-map-title {
+.leaflet-control-map-title,
+.leaflet-control-news {
     padding: 5px 10px;
     background: #fff;
     background-clip: padding-box;
     border: 2px solid rgba(0, 0, 0, 0.2);
     border-radius: 4px;
     opacity: 0.8;
+}
+
+.leaflet-control-map-title {
     font-size: 1.5em;
     clear: right;
 }
