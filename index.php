@@ -39,9 +39,8 @@ require_once("./php/helper.php");
 
       <div id="sideBarContentWrapper">
 	<div id="contentContainer">
+      <noscript><?php echo _("Sorry, OpenFlights requires JavaScript.") ?></noscript>
 	  <div id="map"></div>
-            <div id="maptitle"><noscript><?php echo _("Sorry, OpenFlights requires JavaScript.") ?></noscript>
-	    </div>
 
 	    <div id="news" style="display: none">
           <a href="#" onclick="closeNews()"><i class="fas fa-window-close fa-lg"></i></a>

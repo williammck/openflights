@@ -181,6 +181,49 @@ function init(){
 
   L.control.scale().addTo(map);
 
+  L.Control.MapTitle = L.Control.extend({
+    options: {
+      position: 'topleft'
+    },
+
+    initialize: function (options) {
+      L.Util.setOptions(this, options || {});
+
+      this._mapTitle = null;
+    },
+
+    onAdd: function (map) {
+      map.title = this;
+
+      this._container = L.DomUtil.create('div', 'leaflet-control-map-title');
+      L.DomEvent.disableClickPropagation(this._container);
+
+      this._update();
+
+      return this._container;
+    },
+
+    getTitle: function () {
+      return this._mapTitle;
+    },
+
+    setTitle: function (text) {
+      this._mapTitle = text;
+
+      this._update();
+
+      return this;
+    },
+
+    _update: function () {
+      this._container.style.display = this._mapTitle ? 'block' : 'none';
+
+      this._container.innerHTML = this._mapTitle;
+    }
+  });
+
+  (new L.Control.MapTitle).addTo(map);
+
   // Extract any arguments from URL
   var query;
   arguments = parseUrl();
@@ -562,7 +605,7 @@ function xmlhttpPost(strURL, id, param) {
 	    if(param) {
 	      updateFilter(str);
 	    }
-	    $("maptitle").innerHTML = getMapTitle(true);
+	    map.title.setTitle(getMapTitle(true));
 	  } else {
 	    updateFilter(str);
 	    $('qs').value = "";
@@ -1201,7 +1244,7 @@ function updateMap(str, url){
       maptitle += " <small>on " + form.Airlines.value.split(";")[1] + "</small> " + getAirlineMapIcon(filter_alid);
     }
     maptitle = maptitle.replace("routes", gt.gettext("routes"));
-    $("maptitle").innerHTML = maptitle;
+    map.title.setTitle(maptitle);
   }
 
   // New user (or filter setting) with no flights?  Then don't even try to draw
@@ -3164,7 +3207,7 @@ function refreshAd() {
 }
 
 function of_debug(str) {
-  $("maptitle").innerHTML = $("maptitle").innerHTML + "<br>" + str;
+  map.title.setTitle(map.title.getTitle() + "<br>" + str);
 }
 
 
