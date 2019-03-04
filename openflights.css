@@ -61,7 +61,7 @@
 }
 
 #newairport {
-  right: 260px;
+  right: 250px;
   bottom: 2em;
   position: absolute;
   font-size:1em;
@@ -71,24 +71,10 @@
   z-index: 1001;
   padding: 10px;
   -moz-border-radius: 1em;
-} 
+}
 
-#quicksearch { 
-  right: 240px;
-  bottom: 2em;
-  position: absolute;
-  font-size:1em;
+#qsAC {
   z-index: 1002;
-  padding: 5px 5px 5px 5px;
-  background-color: #00008B;
-  -moz-border-radius: 1em 0 0 1em;
-} 
-
-#qsmini {
-  right: 240px;
-  bottom: 2em;
-  position: absolute;
-  z-index: 1001;
 }
 
 #ajaxloader { 
@@ -248,16 +234,84 @@ select.filter {  width: 160px; }
 
 /* Custom Leaflet Control styles */
 .leaflet-control-map-title,
+.leaflet-control-news,
+.leaflet-control-search {
+    background: #fff;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+}
+.leaflet-touch .leaflet-control-map-title,
+.leaflet-touch .leaflet-control-news,
+.leaflet-touch .leaflet-control-search {
+    border: 2px solid rgba(0,0,0,0.2);
+    background-clip: padding-box;
+    box-shadow: none;
+}
+
+.leaflet-control-map-title,
 .leaflet-control-news {
     padding: 5px 10px;
-    background: #fff;
-    background-clip: padding-box;
-    border: 2px solid rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
     opacity: 0.8;
 }
 
 .leaflet-control-map-title {
     font-size: 1.5em;
     clear: right;
+}
+
+.leaflet-control-search i {
+    line-height: inherit;
+    color: #737373;
+}
+
+.leaflet-control-search .leaflet-control-search-bar,
+.leaflet-control-search-expanded .leaflet-control-search-expand {
+    display: none;
+}
+.leaflet-control-search-expanded .leaflet-control-search-bar {
+    display: block;
+}
+
+.leaflet-control-search-expand {
+    display: block;
+    width: 36px;
+    height: 36px;
+    font-size: 1.5em;
+    line-height: 36px;
+    text-align: center;
+    background: #fff;
+    border-radius: 4px;
+}
+.leaflet-touch .leaflet-control-search-expand {
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    font-size: 2em;
+    border-radius: 2px;
+}
+.leaflet-control-search-expand:hover {
+    background-color: #f4f4f4;
+}
+
+.leaflet-control-search-bar {
+    padding: 5px 10px;
+}
+
+.leaflet-control-search-collapse {
+    height: 16px;
+    width: 16px;
+    line-height: 16px;
+    text-align: center;
+    margin-right: 10px;
+}
+.leaflet-control-search-collapse:hover .far,
+.leaflet-control-search-collapse .fas {
+    display: none;
+}
+.leaflet-control-search-collapse:hover .fas {
+    display: inline;
+}
+
+.leaflet-control-search-input {
+    margin-right: 10px;
 }

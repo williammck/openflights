@@ -38,6 +38,9 @@ require_once("./php/helper.php");
         <?php include("./html/news.html") ?>
     </div>
 
+    <input type="hidden" name="qsid" id="qsid">
+    <div id="qsAC"></div>
+
     <div id="mainContainer">
       <div id="ajaxloader">
         <span id="ajaxstatus" style="display: none"><i class="fas fa-spinner fa-9x fa-pulse" style="color: #222;"></i></span>
@@ -47,19 +50,6 @@ require_once("./php/helper.php");
 	<div id="contentContainer">
       <noscript><?php echo _("Sorry, OpenFlights requires JavaScript.") ?></noscript>
 	  <div id="map"></div>
-
-	    <div id="quicksearch" style="display: none">
-          <a href="#" onclick="$('quicksearch').style.display = 'none'">
-            <i class="far fa-minus-square fa-lg" style="color: #fff;" title="<?php echo _("Hide search bar") ?>"></i>
-          </a>
-  <input type="text" name="qs" id="qs" size="60" tabindex="5" onKeyDown='keyPress(event, "qs")' class="textbox" placeholder="<?php echo _("Enter city, airport, airline name or code") ?>"/><div id="qsAC"></div>
-	      <input type="hidden" name="qsid" id="qsid"/>
-	      <input type="button" id="qsgo" tabindex="6" value="<?php echo _("Search") ?>" title="<?php echo _("Map of routes from this airport") ?>" align="middle" onclick='JavaScript:goQuickSearch()' DISABLED>
-	    </div>
-
-	    <div id="qsmini" style="display: block">
-              <img src="/img/icon-search.png" height=18 width=18 title="<?php echo _("Search") ?>" onClick="$('quicksearch').style.display='inline'">
-            </div>
 
 	    <div id="newairport" style="display: none">
               <?php echo _("Duration") ?> <input type="text" id="duration" size="5" style="text-align: right; background-color: transparent;" onChange="JavaScript:calcDuration('DURATION');" value=""/>

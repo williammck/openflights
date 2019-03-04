@@ -267,6 +267,105 @@ function init(){
 
   (new L.Control.News).addTo(map);
 
+  L.Control.Search = L.Control.extend({
+    options: {
+      position: 'bottomright'
+    },
+
+    initialize: function (options) {
+      L.Util.setOptions(this, options || {});
+    },
+
+    onAdd: function (map) {
+      map.search = this;
+
+      this._initLayout();
+      L.DomEvent.disableClickPropagation(this._container);
+
+      this._map = map;
+
+      return this._container;
+    },
+
+    show: function () {
+      this._container.style.display = 'block';
+    },
+
+    hide: function () {
+      this._container.style.display = 'none';
+    },
+
+    // @method expand(): this
+    // Expand the control container if collapsed.
+    expand: function () {
+      L.DomUtil.addClass(this._container, 'leaflet-control-search-expanded');
+
+      return this;
+    },
+
+    collapse: function () {
+      L.DomUtil.removeClass(this._container, 'leaflet-control-search-expanded');
+
+      return this;
+    },
+
+    _initLayout: function () {
+      var className = 'leaflet-control-search';
+
+      this._container = L.DomUtil.create('div', className);
+
+      /*
+       * Create expander
+       */
+      var expandLink = L.DomUtil.create('a', className + '-expand', this._container);
+      expandLink.href = '#';
+      expandLink.title = gt.gettext('Search');
+
+      L.DomUtil.create('i', 'fas fa-search', expandLink);
+
+      L.DomEvent.disableClickPropagation(expandLink);
+      L.DomEvent.on(expandLink, 'click', L.DomEvent.stop);
+      L.DomEvent.on(expandLink, 'click', this.expand, this);
+
+      /*
+       * Create search bar
+       */
+      var searchBar = L.DomUtil.create('section', className + '-bar', this._container);
+
+      var collapseLink = L.DomUtil.create('a', className + '-collapse', searchBar);
+      collapseLink.href = '#';
+      collapseLink.title = gt.gettext('Hide search bar');
+
+      L.DomUtil.create('i', 'far fa-minus-square fa-lg', collapseLink);
+      L.DomUtil.create('i', 'fas fa-minus-square fa-lg', collapseLink);
+
+      L.DomEvent.disableClickPropagation(collapseLink);
+      L.DomEvent.on(collapseLink, 'click', L.DomEvent.stop);
+      L.DomEvent.on(collapseLink, 'click', this.collapse, this);
+
+      var input = L.DomUtil.create('input', className + '-input textbox', searchBar);
+      input.id = 'qs';
+      input.name = 'qs';
+      input.type = 'text';
+      input.size = 60;
+      input.tabindex = 5;
+      input.placeholder = gt.gettext('Enter city, airport, airline name or code');
+
+      var submit = L.DomUtil.create('input', className + '-submit', searchBar);
+      submit.id = 'qsgo';
+      submit.name = 'qsgo';
+      submit.type = 'button';
+      submit.tabindex = 6;
+      submit.value = gt.gettext('Search');
+      submit.title = gt.gettext('Map of routes from this airport');
+      submit.disabled = true;
+
+      L.DomEvent.on(submit, 'click', goQuickSearch);
+    }
+  });
+
+  (new L.Control.Search).addTo(map);
+
   // Extract any arguments from URL
   var query;
   arguments = parseUrl();
@@ -295,7 +394,7 @@ function init(){
       $("filter_tripselect").style.display = 'none';
     }
   } else {
-    $("quicksearch").style.display = 'inline';
+    map.search.expand();
 
     // Nope, set up hinting and autocompletes for editor
     ac_airport = [ "src_ap", "src_ap1", "src_ap2", "src_ap3", "src_ap4",
@@ -2974,7 +3073,7 @@ function closePane() {
   if(isEditMode()) {
     unmarkAirports();
     $("newairport").style.display = 'none';
-    $("qsmini").style.display = 'block';
+    map.search.show();
   }
   var currentPane = paneStack.pop();
   var lastPane = getCurrentPane();
@@ -3042,8 +3141,7 @@ function openDetailedInput(param) {
   }
   input_toggle = "src_ap";
   input_al_toggle = "airline";
-  $("quicksearch").style.display = 'none';
-  $("qsmini").style.display = 'none';
+  map.search.hide();
   $("newairport").style.display = 'inline';
   $("input_status").innerHTML = "";
 }
@@ -3065,8 +3163,7 @@ function openBasicInput(param) {
   }
 
   openPane("multiinput");
-  $("quicksearch").style.display = 'none';
-  $("qsmini").style.display = 'none';
+  map.search.hide();
   $("newairport").style.display = 'inline';
   $("multiinput_status").innerHTML = "";
   clearInput();
