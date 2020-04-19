@@ -34,15 +34,10 @@ if($OF_VBULLETIN_LOGIN && ! empty($bb_uid)) {
 }
 
 $uid = $_SESSION["uid"];
-$challenge = $_SESSION["challenge"];
 if(!$uid or empty($uid)) {
   // If not logged in, default to demo mode and warn app that we're (no longer?) logged in
   $uid = 1;
   $logged_in = "demo";
-  if(!$challenge or empty($challenge)) {
-    $challenge = md5(rand(1,100000));
-    $_SESSION["challenge"] = $challenge;
-  }
 } else {
   $logged_in = $_SESSION["name"]; // username
   $elite = $_SESSION["elite"];
@@ -140,8 +135,8 @@ if($row = $sth->fetch()) {
   } else {
     $distance = $distance . " " . _("miles");
   }
-  $map .= sprintf("%s;%s;%s;%s;%s;%s;%s;%s\n", $row["count"], $distance, $row["duration"], $public, $elite,
-	 $logged_in, $editor, $challenge);
+  $map .= sprintf("%s;%s;%s;%s;%s;%s;%s;\n", $row["count"], $distance, $row["duration"], $public, $elite,
+	 $logged_in, $editor);
  }
 
 // List of all flights (unique by airport pair)

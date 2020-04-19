@@ -85,7 +85,6 @@ require_once("./php/helper.php");
 		  </tr><tr>
 		  <td align=right><?php echo _("Password") ?>&nbsp;</td><td>
 		      <input type="password" name="pw" align="top" size="10" tabindex="2" onKeyPress='keyPress("CHANGE", "login")'>
- 		      <input type="hidden" name="challenge">    
 		    </td>
 		  </tr><tr>
 		    <td></td>

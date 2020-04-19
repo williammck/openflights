@@ -934,10 +934,9 @@ function xmlhttpPost(strURL, id, param) {
     $("ajaxstatus").style.display = 'inline';
     var name = document.forms['login'].name.value;
     var pw = document.forms['login'].pw.value;
-    var challenge = document.forms['login'].challenge.value;
-    hash = hex_md5(challenge + hex_md5(pw + name.toLowerCase()));
-    legacy_hash = hex_md5(challenge + hex_md5(pw + name));
-    query = 'name=' + encodeURIComponent(name) + '&pw=' + encodeURIComponent(hash) + '&lpw=' + encodeURIComponent(legacy_hash) + "&challenge=" + encodeURIComponent(challenge);
+    var hash = hex_md5(pw + name.toLowerCase());
+    var legacy_hash = hex_md5(pw + name);
+    query = 'name=' + encodeURIComponent(name) + '&pw=' + encodeURIComponent(hash) + '&lpw=' + encodeURIComponent(legacy_hash);
     break;
 
   case URL_GETCODE:
@@ -1298,7 +1297,6 @@ function updateMap(str, url){
     if(! logged_in) {
       elite = col[4];
       editor = col[6];
-      document.forms['login'].challenge.value = col[7];
       
       // Does user have a PHP session open?  Log him in!
       // Simulate login.php: "1;name;editor;elite"

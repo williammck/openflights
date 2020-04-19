@@ -162,7 +162,7 @@ $route = array('core_ap_iata' => 'ISG',
 // Login
 // Use default settings unless name/password are given as arguments
 
-function login($case, $name = NULL, $password = NULL, $challenge = NULL) {
+function login($case, $name = NULL, $password = NULL) {
   global $webroot, $settings;
   
   if(! $password) {
@@ -171,18 +171,12 @@ function login($case, $name = NULL, $password = NULL, $challenge = NULL) {
   if(! $name) {
     $name = $settings["name"];
   }
-  
-  $map = $case->post($webroot . "php/map.php");
-  $cols = preg_split('/[;\n]/', $map);
-  if($challenge == NULL) {
-    $challenge = $cols[7];
-  }
-  $hash = md5($challenge . md5($password . strtolower($name)));
-  $legacyhash = md5($challenge . md5($password . $name));
+
+  $hash = md5($password . strtolower($name));
+  $legacyhash = md5($password . $name);
   $params = array("name" => $name,
 		  "pw" => $hash,
-		  "lpw" => $legacyhash,
-		  "challenge" => $challenge);
+		  "lpw" => $legacyhash);
   return json_decode($case->post($webroot . "php/login.php", $params));
 }
 

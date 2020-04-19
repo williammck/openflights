@@ -57,10 +57,6 @@ def get_openflights_csv(username, pass_hash):
   url = "http://openflights.org/php/"
   response, content = http.request(url+"map.php", 'POST', headers=headers)
   headers['Cookie'] = response['set-cookie']
-  challenge = content.split("\n")[0].split(";")[-1]
-  #print headers['Cookie'], "challenge", challenge
-  hash = md5(challenge + pass_hash).hexdigest()
-  #print "hash", hash
   body = {'name': username, 'pw': hash}
   response, content = http.request(url+"login.php", 'POST', headers=headers, body=urllib.urlencode(body))
 

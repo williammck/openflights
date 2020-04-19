@@ -6,30 +6,17 @@ $name = $_POST["name"];
 // pw is hashed from lowercased username, legacypw is not
 $pw = $_POST["pw"];
 $legacypw = $_POST["lpw"];
-$challenge = $_POST["challenge"];
-
-if($challenge && $challenge != $_SESSION["challenge"]) {
-  $myrow = array("status" => 0, "message" => "Session expired. Please <a href='/'>refresh</a> and try again.");
-  die(json_encode($myrow));
-} else {
-  $challenge = $_SESSION["challenge"];
-}
 
 // Log in user
 if($name) {
-  // CHAP: Use random challenge key in addition to password
-  // user_pw == MD5(challenge, db_pw)
   $sth = $dbh->prepare("
     SELECT uid, name, email, editor, elite, units, locale
     FROM users
     WHERE
       name = :name
-      AND (
-        :pw = MD5(CONCAT(:challenge, password))
-        OR :legacypw = MD5(CONCAT(:challenge, password))
-      )
+      AND (:pw = password OR :legacypw = password)
   ");
-  $sth->execute(compact('name', 'challenge', 'pw', 'legacypw'));
+  $sth->execute(compact('name', 'pw', 'legacypw'));
   if ($myrow = $sth->fetch()) {
     $uid = $myrow["uid"];
     $_SESSION['uid'] = $uid;
