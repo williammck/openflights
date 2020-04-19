@@ -172,11 +172,7 @@ function login($case, $name = NULL, $password = NULL) {
     $name = $settings["name"];
   }
 
-  $hash = md5($password . strtolower($name));
-  $legacyhash = md5($password . $name);
-  $params = array("name" => $name,
-		  "pw" => $hash,
-		  "lpw" => $legacyhash);
+  $params = ['name' => $name, 'pw' => $password];
   return json_decode($case->post($webroot . "php/login.php", $params));
 }
 

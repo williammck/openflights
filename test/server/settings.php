@@ -11,9 +11,8 @@ class SuccessfulNewUserTest extends WebTestCase {
   function test() {
     global $webroot, $settings;
 
-    $hash = md5($settings["password"] . strtolower($settings["name"]));
     $settings["type"] = "NEW";
-    $settings["pw"] = $hash;
+    $settings["pw"] = $settings["password"];
     $this->post($webroot . "php/settings.php", $settings);
     $this->assertText('1;');
   }
@@ -24,9 +23,8 @@ class DuplicateUserTest extends WebTestCase {
   function test() {
     global $webroot, $settings;
 
-    $hash = md5($settings["password"] . strtolower($settings["name"]));
     $settings["type"] = "NEW";
-    $settings["pw"] = $hash;
+    $settings["pw"] = $settings["password"];
     $this->post($webroot . "php/settings.php", $settings);
     $this->assertText('0;');
   }
@@ -71,11 +69,9 @@ class ChangePasswordTest extends WebTestCase {
     global $webroot, $settings;
 
     login($this);
-    $oldhash = md5($settings["password"] . strtolower($settings["name"]));
-    $newhash = md5("newpw" . strtolower($settings["name"]));
     $params = array("type" => "EDIT",
-		    "oldpw" => $oldhash,
-		    "pw" => $newhash);
+		    "oldpw" => $settings["password"],
+		    "pw" => "newpw");
     $msg = $this->post($webroot . "php/settings.php", $params);
     $this->assertText('2;');
 
@@ -87,8 +83,8 @@ class ChangePasswordTest extends WebTestCase {
 
     // Change it back
     $params = array("type" => "EDIT",
-		    "oldpw" => $newhash,
-		    "pw" => $oldhash);
+		    "oldpw" => "newpw",
+		    "pw" => $settings["password"]);
     $msg = $this->post($webroot . "php/settings.php", $params);
     $this->assertText('2;');
   }

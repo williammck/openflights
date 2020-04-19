@@ -934,9 +934,7 @@ function xmlhttpPost(strURL, id, param) {
     $("ajaxstatus").style.display = 'inline';
     var name = document.forms['login'].name.value;
     var pw = document.forms['login'].pw.value;
-    var hash = hex_md5(pw + name.toLowerCase());
-    var legacy_hash = hex_md5(pw + name);
-    query = 'name=' + encodeURIComponent(name) + '&pw=' + encodeURIComponent(hash) + '&lpw=' + encodeURIComponent(legacy_hash);
+    query = 'name=' + encodeURIComponent(name) + '&pw=' + encodeURIComponent(pw);
     break;
 
   case URL_GETCODE:

@@ -64,7 +64,7 @@ function xmlhttpPost(strURL, type) {
       }
     }
     query = 'type=' + type + '&' +
-      'pw=' + encodeURIComponent(hex_md5(form.pw1.value + form.username.value.toLowerCase())) + '&' +
+      'pw=' + encodeURIComponent(form.pw1.value) + '&' +
       'email=' + encodeURIComponent(form.email.value) + '&' +
       'privacy=' + encodeURIComponent(privacy) + '&' +
       'editor=' + encodeURIComponent(editor) + '&' +
@@ -83,9 +83,7 @@ function xmlhttpPost(strURL, type) {
 	}
       }
       if(form.oldpw.value != "") {
-	query += '&oldpw=' + encodeURIComponent(hex_md5(form.oldpw.value + form.username.value.toLowerCase()));
-	// Legacy password for case-sensitive days of yore
-	query += '&oldlpw=' + encodeURIComponent(hex_md5(form.oldpw.value + form.username.value));
+	query += '&oldpw=' + encodeURIComponent(form.oldpw.value);
       }
       if(form.guestpw.value != "") {
 	query += '&guestpw=' + encodeURIComponent(hex_md5(form.guestpw.value + form.username.value.toLowerCase()));

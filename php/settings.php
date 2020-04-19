@@ -1,12 +1,12 @@
 <?php
 include 'locale.php';
 include 'db_pdo.php';
+include 'helper.php';
 
 $type = $_POST["type"];
 $name = $_POST["name"];
 $pw = $_POST["pw"];
 $oldpw = $_POST["oldpw"];
-$oldlpw = $_POST["oldlpw"];
 $email = $_POST["email"];
 $privacy = $_POST["privacy"];
 $editor = $_POST["editor"];
@@ -47,9 +47,10 @@ switch($type) {
 
   // EDIT
   if($oldpw && $oldpw != "") {
-    $sth = $dbh->prepare("SELECT * FROM users WHERE name = ? AND (password = ? OR password = ?)");
-    $sth->execute([$name, $oldpw, $oldlpw]);
-    if(!$sth->fetch()) {
+    $sth = $dbh->prepare("SELECT password FROM users WHERE name = ?");
+    $sth->execute([$name]);
+    $passwordHash = $sth->fetchColumn();
+    if(!isPasswordCorrect($name, $oldpw, $passwordHash, false)) {
       die("0;" . _("Sorry, current password is not correct."));
     }
   }
@@ -59,17 +60,24 @@ switch($type) {
    die("0;Unknown action $type");
 }
 
-// Note: Password is actually an MD5 hash of pw and username
+$newPasswordHash = password_hash($pw, PASSWORD_BCRYPT);
 if($type == "NEW") {
   $sth = $dbh->prepare("INSERT INTO users (name, password, email, public, editor, locale, units) VALUES (?, ?, ?, ?, ?, ?, ?)");
-  $success = $sth->execute([$name, $pw, $email, $privacy, $editor, $locale, $units]);
+  $success = $sth->execute([$name, $newPasswordHash, $email, $privacy, $editor, $locale, $units]);
 } else {
   if(! $guestpw) $guestpw = null;
   $params = compact('email', 'privacy', 'editor', 'guestpw', 'startpane', 'locale', 'units', 'uid');
-  // Only change password if old password matched and a new one was given
-  if($oldpw && $oldpw != "" && $pw && $pw != "") {
-    $pwsql = "password = :pw, ";
-    $params['pw'] = $pw;
+
+  // If the old password was given...
+  if($oldpw && $oldpw != "") {
+    $pwsql = "password = :password, ";
+    if ($pw && $pw != "") {
+      // Change if we got a new one
+      $params['password'] = $newPasswordHash;
+    } else if (isLegacyHash($name, $oldpw, $passwordHash)) {
+      // Otherwise, while we're at it, let's normalize the password if it's a legacy format
+      $params['password'] = password_hash($oldpw, PASSWORD_BCRYPT);
+    }
   } else {
     $pwsql = "";
   }

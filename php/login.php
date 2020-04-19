@@ -1,23 +1,21 @@
 <?php
 include 'locale.php';
 include 'db_pdo.php';
+include 'helper.php';
 
 $name = $_POST["name"];
-// pw is hashed from lowercased username, legacypw is not
 $pw = $_POST["pw"];
-$legacypw = $_POST["lpw"];
 
 // Log in user
 if($name) {
   $sth = $dbh->prepare("
-    SELECT uid, name, email, editor, elite, units, locale
+    SELECT uid, name, password, email, editor, elite, units, locale
     FROM users
-    WHERE
-      name = :name
-      AND (:pw = password OR :legacypw = password)
+    WHERE name = ?
   ");
-  $sth->execute(compact('name', 'pw', 'legacypw'));
-  if ($myrow = $sth->fetch()) {
+  $sth->execute([$name]);
+  $myrow = $sth->fetch(PDO::FETCH_ASSOC);
+  if ($myrow && isPasswordCorrect($name, $pw, $myrow['password'])) {
     $uid = $myrow["uid"];
     $_SESSION['uid'] = $uid;
     $_SESSION['name'] = $myrow["name"];
@@ -35,6 +33,7 @@ if($name) {
     $message = sprintf(_("Login failed. <%s>Create account</a> or <%s>reset password</a>?"), "a href='/html/settings?new=yes'", "a href='#' onclick='JavaScript:help(\"resetpw\")'");
     $myrow = array("status" => 0, "message" => $message);
   }
+  unset($myrow['password']);
   print json_encode($myrow);
 }
 ?>

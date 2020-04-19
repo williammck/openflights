@@ -22,9 +22,9 @@ if(isSet($_GET["challenge"])) {
   if ($myrow = $sth->fetch()) {
     if($challenge == $myrow['challenge']) {
       $newpw = substr(uniqid(), 0, 8);
-      $pwstring = md5($newpw . strtolower($user));
+      $hash = password_hash($newpw, PASSWORD_BCRYPT);
       $sth = $dbh->prepare("UPDATE users SET password = ? WHERE name=?");
-      if (!$sth->execute([$pwstring, $user])) die ('Resetting password for user ' . $name . ' failed');
+      if (!$sth->execute([$hash, $user])) die ('Resetting password for user ' . $name . ' failed');
       echo "Your new password is <b>$newpw</b>.  Please log in and change it from Settings.\n\n<INPUT type='button' value='Login' onClick='javascript:window.location=\"/\"'>";
     } else {
       echo "Invalid challenge.";

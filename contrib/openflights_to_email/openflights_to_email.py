@@ -25,12 +25,11 @@ import datetime
 import httplib2
 import urllib
 from email.mime.text import MIMEText
-from hashlib import md5
 from smtplib import SMTP
 
 
 openflights_username="<USERNAME>"
-openflights_pass_hash = md5(openflights_username + "<PASSWORD>").hexdigest()
+openflights_password = "<PASSWORD>"
 
 sender_address = "sender@example.com"
 dest_address   = "destination@example.com"
@@ -50,14 +49,14 @@ def get_ap_string(iata):
     if line[4] == iata:
       return "<b>%s, %s</b>" % (line[2], line[3])
 
-def get_openflights_csv(username, pass_hash):
+def get_openflights_csv(username, password):
   # Login to openflights.org
   http = httplib2.Http()
   headers = {'Content-type': 'application/x-www-form-urlencoded'}
   url = "http://openflights.org/php/"
   response, content = http.request(url+"map.php", 'POST', headers=headers)
   headers['Cookie'] = response['set-cookie']
-  body = {'name': username, 'pw': hash}
+  body = {'name': username, 'pw': password}
   response, content = http.request(url+"login.php", 'POST', headers=headers, body=urllib.urlencode(body))
 
   # Export flights in CSV format
@@ -98,7 +97,7 @@ def construct_email(flights_csv):
 
   
 if __name__ == "__main__":
-  flights_csv = get_openflights_csv(openflights_username, openflights_pass_hash)
+  flights_csv = get_openflights_csv(openflights_username, openflights_password)
   email = construct_email(flights_csv)
   if email:
     print email

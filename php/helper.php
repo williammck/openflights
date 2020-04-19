@@ -183,4 +183,59 @@ function orderAirports($src_apid, $dst_apid) {
   }
 }
 
-?>
+/**
+ * Check if a given password is correct
+ * Backwards compatible with previous OF hashing algorithms
+ *
+ * @param $username string
+ * @param $password string
+ * @param $hash string Password hash (Either MD5 or password_hash)
+ * @param $changeIfLegacy bool If the hash is old, go ahead and change the password
+ * @return bool Whether the password given is correct
+ */
+if (!function_exists('isPasswordCorrect')) {
+    function isPasswordCorrect($username, $password, $hash, $changeIfLegacy = true)
+    {
+        if (password_verify($password, $hash)) {
+            return true;
+        } else {
+            if (isLegacyHash($username, $password, $hash)) {
+                // Legacy password hashing algos, let's change if requested
+                if ($changeIfLegacy) {
+                    global $dbh;
+                    $sth = $dbh->prepare('UPDATE users SET password = ? WHERE name = ?');
+                    $sth->execute([password_hash($password, PASSWORD_BCRYPT), $username]);
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+/**
+ * Check if a given password hash is in a legacy format
+ *
+ * @param $username string
+ * @param $password string
+ * @param $hash string Password hash (Either MD5 or password_hash'ed MD5)
+ * @return bool Whether the hash provided is in a legacy format
+ */
+if (!function_exists('isLegacyHash')) {
+    function isLegacyHash($username, $password, $hash)
+    {
+        if (password_verify($password, $hash)) {
+            return false;
+        }
+
+        $md5Hash = md5($password . strtolower($username));
+        $md5LegacyHash = md5($password . $username);
+
+        return password_verify($md5Hash, $hash)
+            || password_verify($md5LegacyHash, $hash)
+            || hash_equals($hash, $md5Hash)
+            || hash_equals($hash, $md5LegacyHash);
+    }
+}
